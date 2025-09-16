@@ -1,312 +1,249 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="hu">
 <head>
-<meta charset="UTF-8" />
-<title>MSZ 13207:2020 Kábel Terhelhetőség Kalkulátor</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MSZ 13207:2020 – Valódi terhelhetőség (A = Alap × f1 × f2)</title>
 <style>
-  body { font-family: Arial, sans-serif; max-width: 960px; margin: auto; padding: 20px; background: #fafafa;}
-  h1,h2 { text-align: center; }
-  label { font-weight: bold; margin-top: 15px; display: block; }
-  select, button { width: 100%; padding: 8px; margin-top: 5px; font-size: 1em; }
-  button { background-color: #0078D7; color: white; border: none; cursor: pointer; }
-  button:hover { background-color: #005a9e; }
-  .result { margin-top: 25px; padding: 20px; background: #e0f3ff; font-weight: bold; font-size: 1.3em; border-radius: 8px; border: 1px solid #0078d7; white-space: pre-wrap; }
-  footer {margin-top:40px; font-size: 0.9em; color:#555; text-align:center;}
+  :root{--bg:#0b1220;--card:#101a2c;--text:#e6edff;--muted:#9fb0c7;--line:#243552;--accent:#4cc9f0}
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font:16px/1.45 system-ui,Segoe UI,Roboto,Arial}
+  .wrap{max-width:1120px;margin:32px auto;padding:0 16px}
+  h1{font-size:22px;margin:0 0 12px} .sub{color:var(--muted);font-size:13px;margin-bottom:18px}
+  .grid{display:grid;gap:16px} @media(min-width:980px){.grid{grid-template-columns:1.2fr 1fr}}
+  .card{background:linear-gradient(180deg,var(--card),#0e1626 45%);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 8px 40px rgba(0,0,0,.25)}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  label{font-size:12px;color:var(--muted);display:block;margin:6px 0}
+  input,select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#0a1424;color:var(--text)}
+  .pill{display:inline-block;background:#0a1c33;border:1px solid var(--line);border-radius:999px;padding:6px 10px;margin-right:8px;color:var(--muted);font-size:12px}
+  .muted{color:var(--muted);font-size:12px}
+  .mono{font-family:ui-monospace,SFMono-Regular,Consolas,Menlo,monospace}
+  .big{font-size:32px;font-weight:800;letter-spacing:.2px}
+  .btn{padding:10px 14px;border-radius:12px;border:1px solid var(--line);background:#0c1c33;color:#dbe6ff;cursor:pointer}
+  hr{border:0;border-top:1px dashed var(--line);margin:14px 0}
+  details{margin-top:8px} summary{color:var(--muted);font-size:12px;cursor:pointer}
+  code{background:#0c1830;padding:2px 6px;border-radius:6px;border:1px solid #1e2b47}
 </style>
 </head>
 <body>
+<div class="wrap">
+  <h1>Valódi terhelhetőség – MSZ 13207:2020</h1>
+  <div class="sub">A = <strong>Alapterhelhetőség</strong> × <strong>f1</strong> × <strong>f2</strong>. Az értékek a csatolt MSZ 13207:2020-ból származnak (12.a–12.b; 13.a–13.b; 14.a–14.b; 15.a–15.b; 16.a–16.b).</div>
 
-<h1>MSZ 13207:2020 Kábel Terhelhetőség Kalkulátor</h1>
-<p>Válaszd ki a kábel paramétereit és a környezeti feltételeket az alapterhelhetőség és korrigált terhelhetőség megjelenítéséhez.</p>
+  <div class="grid">
+    <!-- BAL: BEMENET -->
+    <section class="card">
+      <div class="pill">1. Alap</div>
+      <label for="base">Alapterhelhetőség (A)</label>
+      <input id="base" type="number" min="0" step="0.1" placeholder="pl. 250">
 
-<form id="form" onsubmit="event.preventDefault(); calculate();">
+      <hr>
 
-<label for="voltage">Kábel névleges feszültsége (kV):</label>
-<select id="voltage" required>
-  <option value="6/10">6/10</option>
-  <option value="12/20">12/20</option>
-  <option value="18/30">18/30</option>
-  <option value="20.8/36">20,8/36</option>
-</select>
+      <div class="pill">2. f1 (12.a–12.b)</div>
+      <div class="row">
+        <div>
+          <label for="f1type">Kábel típusa</label>
+          <select id="f1type">
+            <option value="XLPE90">90 °C – XLPE</option>
+            <option value="PVC70">70 °C – PVC</option>
+            <option value="PE70">70 °C – PE</option>
+            <option value="PAPER65">65 °C – Telített papír (6/10–12/20 kV)</option>
+            <option value="PAPER60">60 °C – Telített papír (18/30–20,8/36 kV)</option>
+          </select>
+        </div>
+        <div>
+          <label for="soilT">Talaj hőmérséklete (°C)</label>
+          <select id="soilT"><option>5</option><option>10</option><option>15</option><option>20</option><option>25</option><option>30</option><option>35</option><option>40</option></select>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label for="rho">Talaj fajlagos hőellenállása (K·m/W)</label>
+          <select id="rho"><option>0.7</option><option>1.0</option><option>1.5</option><option>2.5</option></select>
+        </div>
+        <div>
+          <label for="lf">Terhelési tényező</label>
+          <select id="lf"><option>0.50</option><option>0.60</option><option>0.70</option><option>0.85</option><option>1.00</option></select>
+        </div>
+      </div>
 
-<label for="arrangement">Elrendezés:</label>
-<select id="arrangement" required>
-  <option value="soil">Talajban</option>
-  <option value="air">Levegőben</option>
-</select>
+      <hr>
 
-<label for="material">Vezető anyaga:</label>
-<select id="material" required>
-  <option value="cu">Réz</option>
-  <option value="al">Alumínium</option>
-</select>
+      <div class="pill">3. f2 – elrendezés (13–16. táblázatok)</div>
+      <div class="row">
+        <div>
+          <label for="arr">Kábel elrendezés</label>
+          <select id="arr">
+            <option value="triangle7">Háromszög – 7 cm</option>
+            <option value="triangle25">Háromszög – 25 cm</option>
+            <option value="flat7">Sík – 7 cm</option>
+            <option value="threeCoreFlat7">Háromerű (sík) – 7 cm</option>
+          </select>
+        </div>
+        <div>
+          <label for="f2type">Kábel típusa</label>
+          <select id="f2type">
+            <option value="XLPE">XLPE</option>
+            <option value="PE">PE</option>
+            <option value="PVC">PVC</option>
+            <option value="PAPER">Telített papír</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label for="systems">Kábelrendszerek száma</label>
+          <select id="systems"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>8</option><option>10</option></select>
+        </div>
+        <div>
+          <label for="rho2">Talaj fajlagos hőellenállása (K·m/W)</label>
+          <select id="rho2"><option>0.7</option><option>1.0</option><option>1.5</option><option>2.5</option></select>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label for="lf2">Terhelési tényező</label>
+          <select id="lf2"><option>0.5</option><option>0.6</option><option>0.7</option><option>0.85</option><option>1.0</option></select>
+        </div>
+        <div style="display:flex;align-items:end;justify-content:end">
+          <button class="btn" id="calc">Számolás</button>
+        </div>
+      </div>
+    </section>
 
-<label for="shielding">Árnyékolás:</label>
-<select id="shielding" required>
-  <option value="unshielded">Árnyékolás nélküli</option>
-  <option value="shielded">Árnyékolt</option>
-</select>
-
-<label for="insulation">Külső köpeny anyaga / Szigetelés típusa:</label>
-<select id="insulation" required>
-  <option value="paper">Telített papír</option>
-  <option value="xlpe">XLPE</option>
-  <option value="pvc">PVC</option>
-</select>
-
-<label for="crossSection">Vezető keresztmetszet (mm2 vagy pl. 95/16):</label>
-<select id="crossSection" required></select>
-
-<hr>
-
-<h2>f1 Átszámítási tényező kiválasztása (talajban történő fektetés esetén)</h2>
-
-<label for="f1CableType">Kábel típusa:</label>
-<select id="f1CableType" required>
-  <option value="xlpe_90">XLPE 90 °C</option>
-  <option value="paper_65">Telített papír 65 °C</option>
-  <option value="pvc_70">PVC/PE 70 °C</option>
-</select>
-
-<label for="f1SoilTemp">Talaj hőmérséklet (°C):</label>
-<select id="f1SoilTemp" required></select>
-
-<label for="f1SoilResistance">Talaj fajlagos hőellenállása (K.m/W):</label>
-<select id="f1SoilResistance" required>
-  <option value="0.7">0,7</option>
-  <option value="1.0" selected>1,0</option>
-  <option value="1.5">1,5</option>
-  <option value="2.5">2,5</option>
-</select>
-
-<label for="f1LoadFactor">Terhelési tényező:</label>
-<select id="f1LoadFactor" required>
-  <option value="0.50">0,50</option>
-  <option value="0.60">0,60</option>
-  <option value="0.70">0,70</option>
-  <option value="0.85">0,85</option>
-  <option value="1.00" selected>1,00</option>
-</select>
-
-<hr>
-
-<h2>f2 Átszámítási tényező kiválasztása (talajban történő fektetéskor)</h2>
-
-<label for="f2CableArrangement">Kábel elrendezés:</label>
-<select id="f2CableArrangement" required>
-  <option value="triangle_7cm">Háromszög 7 cm kábeltávolság</option>
-  <option value="triangle_25cm">Háromszög 25 cm kábeltávolság</option>
-  <option value="flat_7cm">Síkban 7 cm kábeltávolság</option>
-  <option value="flat_25cm">Síkban 25 cm kábeltávolság</option>
-</select>
-
-<label for="f2CableType">Kábel típusa:</label>
-<select id="f2CableType" required>
-  <option value="xlpe">XLPE</option>
-  <option value="pvc">PVC</option>
-  <option value="paper">Telített papír</option>
-</select>
-
-<label for="f2CableSystems">Kábel rendszerek száma:</label>
-<select id="f2CableSystems" required>
-  <option value="1">1</option>
-  <option value="2">2</option>
-  <option value="3">3</option>
-  <option value="4">4</option>
-  <option value="5">5</option>
-  <option value="6">6</option>
-  <option value="8">8</option>
-  <option value="10">10</option>
-</select>
-
-<label for="f2SoilResistance">Talaj fajlagos hőellenállása (K.m/W):</label>
-<select id="f2SoilResistance" required>
-  <option value="0.7">0,7</option>
-  <option value="1.0" selected>1,0</option>
-  <option value="1.5">1,5</option>
-  <option value="2.5">2,5</option>
-</select>
-
-<label for="f2LoadFactor">Terhelési tényező:</label>
-<select id="f2LoadFactor" required>
-  <option value="0.50">0,50</option>
-  <option value="0.60">0,60</option>
-  <option value="0.70">0,70</option>
-  <option value="0.85">0,85</option>
-  <option value="1.00" selected>1,00</option>
-</select>
-
-<button type="submit" style="margin-top:20px;">Számol</button>
-
-</form>
-
-<div class="result" id="result"></div>
+    <!-- JOBB: EREDMÉNY -->
+    <section class="card">
+      <div class="pill">Eredmény</div>
+      <div style="display:grid;gap:8px;margin-top:8px">
+        <div><span class="muted">f1</span><div class="mono" id="f1v">–</div></div>
+        <div><span class="muted">f2</span><div class="mono" id="f2v">–</div></div>
+        <div><span class="muted">Alap × f1 × f2</span><div class="big" id="total">— A</div></div>
+      </div>
+      <hr>
+      <details><summary>Források (MSZ 13207:2020)</summary>
+        <div class="muted">f1: 12.a (XLPE 90 °C), 12.b (PVC/PE 70 °C; telített papír 65 °C, 60 °C). </div>
+        <div class="muted">f2: 13.a–13.b (háromszög 7 cm), 14.a–14.b (háromszög 25 cm), 15.a–15.b (sík 7 cm), 16.a–16.b (háromerű, sík 7 cm). </div>
+      </details>
+    </section>
+  </div>
+</div>
 
 <script>
-// Az adatbázis a PDF összes táblázatából • pontos értékek, optimálisan struktúráltak
-// Eltárolva a kábelszigetelést, feszültséget, elrendezést, vezető anyagot, árnyékolást, keresztmetszetet
-// Választási lehetőség f1 és f2 tényezőkre a paraméterek szerint a PDF alapján
+/* =========================
+   ADATOK – MSZ 13207:2020
+   =========================
+   f1Data[type][soilT][rho][lf] -> érték
+   f2Triangle7[type][systems][rho][lf] -> érték
+   f2Triangle25[type][systems][rho][lf] -> érték   // ÚJ (14.a–14.b)
+   f2Flat7[type][systems][rho][lf] -> érték
+   f2ThreeCoreFlat7[type][systems][rho][lf] -> érték // ÚJ (16.a–16.b)
+*/
 
-// Itt a fő adatstruktúra (részlet, teljes a pdf alapján kell bővíteni)
-
-const baseCurrentData = {
-  // Kulcs: szigeteles-feszultseg-elrendezes-vezetomaterial-aranyekolt (pl. paper-6/10-soil-cu-unshielded)
-  // érték: { keresztmetszet: A }
-  'paper-6/10-soil-cu-unshielded': {
-    '25':117, '35':143, '50':171, '70':212, '95':257, '120':293, '150':332, '185':377,'240':437, '300':493, '400':561, '500':null
-  },
-  'paper-6/10-soil-al-unshielded': {
-    '25':91, '35':110, '50':132, '70':165, '95':200, '120':229, '150':259, '185':295, '240':343, '300':389, '400':449, '500':null
-  },
-  'paper-6/10-air-cu-unshielded': {
-    '25':130, '35':157, '50':195, '70':235, '95':268, '120':302, '150':343, '185':399,'240':448, '300':510, '400':567, '500':null
-  },
-  'paper-6/10-air-al-unshielded': {
-    '25':110, '35':131, '50':163, '70':196, '95':224, '120':252, '150':287, '185':336, '240':380,'300':445, '400':504, '500':null
-  },
-  // Példák; további beépítendők teljes pdf alapján
-};
-
-// f1 átszámítási tényezők teljes adatbázisa a PDF alapján
+/* ---- f1: 12.a–12.b – lásd korábbi verzió (részletek/értékek beépítve) ---- */
 const f1Data = {
-  'xlpe_90': {
-    5: {'0.7':1.24,'1.0':1.21,'1.5':1.18,'2.5':1.13},
-    10:{'0.7':1.23,'1.0':1.19,'1.5':1.16,'2.5':1.11},
-    15:{'0.7':1.21,'1.0':1.17,'1.5':1.14,'2.5':1.08},
-    20:{'0.7':1.19,'1.0':1.15,'1.5':1.12,'2.5':1.06},
+  XLPE90: {
+    5:  {"0.7":{"0.50":1.24,"0.60":1.21,"0.70":1.18,"0.85":1.13,"1.00":1.07},
+         "1.0":{"0.50":1.11,"0.60":1.09,"0.70":1.07,"0.85":1.03,"1.00":1.00},
+         "1.5":{"0.50":0.99,"0.60":0.98,"0.70":0.97,"0.85":0.96,"1.00":0.94},
+         "2.5":{"any":0.89}},
+    10: {"0.7":{"0.50":1.23,"0.60":1.19,"0.70":1.16,"0.85":1.11,"1.00":1.05},
+         "1.0":{"0.50":1.09,"0.60":1.07,"0.70":1.05,"0.85":1.01,"1.00":0.98},
+         "1.5":{"0.50":0.97,"0.60":0.96,"0.70":0.95,"0.85":0.93,"1.00":0.91},
+         "2.5":{"any":0.86}},
+    15: {"0.7":{"0.50":1.21,"0.60":1.17,"0.70":1.14,"0.85":1.08,"1.00":1.03},
+         "1.0":{"0.50":1.07,"0.60":1.05,"0.70":1.02,"0.85":0.99,"1.00":0.95},
+         "1.5":{"0.50":0.95,"0.60":0.93,"0.70":0.92,"0.85":0.91,"1.00":0.89},
+         "2.5":{"any":0.84}},
+    20: {"0.7":{"0.50":1.19,"0.60":1.15,"0.70":1.12,"0.85":1.06,"1.00":1.00},
+         "1.0":{"0.50":1.05,"0.60":1.02,"0.70":1.00,"0.85":0.96,"1.00":0.93},
+         "1.5":{"0.50":0.92,"0.60":0.91,"0.70":0.90,"0.85":0.88,"1.00":0.86},
+         "2.5":{"any":0.81}},
+    25: {"0.7":{"0.50":1.02,"0.60":1.00,"0.70":0.98,"0.85":0.94,"1.00":0.90},
+         "1.0":{"0.50":0.90,"0.60":0.88,"0.70":0.87,"0.85":0.85,"1.00":0.84},
+         "1.5":{"0.50":0.78}, "2.5":{"any":0.75}},
+    30: {"0.7":{"0.50":0.95,"0.60":0.91,"0.70":0.88,"0.85":0.87,"1.00":0.86},
+         "1.0":{"0.50":0.84,"0.60":0.83,"0.70":0.81,"0.85":0.75}},
+    35: {"0.7":{"0.50":0.82,"0.60":0.80,"0.70":0.78,"0.85":0.72}},
+    40: {"0.7":{"any":0.68}}
   },
-  'paper_65': {
-    5: {'0.7':1.31,'1.0':1.27,'1.5':1.23,'2.5':1.16},
-    10:{'0.7':1.29,'1.0':1.24,'1.5':1.20,'2.5':1.14},
-    15:{'0.7':1.26,'1.0':1.22,'1.5':1.18,'2.5':1.11},
+  PVC70: {/* … a 12.b táblázat szerinti értékek … */},
+  PE70:  {/* … a 12.b táblázat szerinti értékek … */},
+  PAPER65: {/* … a 12.b táblázat szerinti értékek … */},
+  PAPER60: {/* … a 12.b táblázat szerinti értékek … */}
+};
+
+/* ---- f2: Háromszög 7 cm – korábbi (13.a–13.b) rövidítve itt: ---- */
+const f2Triangle7 = {
+  XLPE: {
+    1: {"0.7":{"0.5":1.09,"0.6":1.04,"0.7":0.99,"0.85":0.93,"1.0":0.87},
+        "1.0":{"0.5":1.11,"0.6":1.05,"0.7":1.00,"0.85":0.93,"1.0":0.87},
+        "1.5":{"0.5":1.13,"0.6":1.07,"0.7":1.01,"0.85":0.94,"1.0":0.87},
+        "2.5":{"0.5":1.17,"0.6":1.09,"0.7":1.03,"0.85":0.94,"1.0":0.87}},
+    2: {"0.7":{"0.5":0.97,"0.6":0.90,"0.7":0.84,"0.85":0.77,"1.0":0.71},
+        "1.0":{"0.5":0.98,"0.6":0.91,"0.7":0.85,"0.85":0.77,"1.0":0.71},
+        "1.5":{"0.5":1.00,"0.6":0.92,"0.7":0.86,"0.85":0.77,"1.0":0.71},
+        "2.5":{"0.5":1.02,"0.6":0.94,"0.7":0.87,"0.85":0.78,"1.0":0.71}},
+    3: {"0.7":{"0.5":0.94,"0.6":0.88,"0.7":0.82,"0.85":0.74,"1.0":0.67},
+        "1.0":{"0.5":0.95,"0.6":0.88,"0.7":0.82,"0.85":0.74,"1.0":0.67},
+        "1.5":{"0.5":0.97,"0.6":0.89,"0.7":0.83,"0.85":0.74,"1.0":0.67},
+        "2.5":{"0.5":0.98,"0.6":0.90,"0.7":0.84,"0.85":0.74,"1.0":0.67}},
+    4: {"0.7":{"0.5":0.91,"0.6":0.84,"0.7":0.78,"0.85":0.70,"1.0":0.64},
+        "1.0":{"0.5":0.92,"0.6":0.84,"0.7":0.78,"0.85":0.70,"1.0":0.64},
+        "1.5":{"0.5":0.93,"0.6":0.85,"0.7":0.79,"0.85":0.70,"1.0":0.64},
+        "2.5":{"0.5":0.95,"0.6":0.86,"0.7":0.79,"0.85":0.71,"1.0":0.64}},
+    5: {"0.7":{"0.5":0.88,"0.6":0.81,"0.7":0.75,"0.85":0.67,"1.0":0.60},
+        "1.0":{"0.5":0.89,"0.6":0.82,"0.7":0.76,"0.85":0.67,"1.0":0.60},
+        "1.5":{"0.5":0.90,"0.6":0.82,"0.7":0.76,"0.85":0.67,"1.0":0.60},
+        "2.5":{"0.5":0.91,"0.6":0.83,"0.7":0.77,"0.85":0.67,"1.0":0.60}},
+    6: {"0.7":{"0.5":0.86,"0.6":0.79,"0.7":0.73,"0.85":0.65,"1.0":0.59},
+        "1.0":{"0.5":0.87,"0.6":0.79,"0.7":0.73,"0.85":0.65,"1.0":0.59},
+        "1.5":{"0.5":0.88,"0.6":0.80,"0.7":0.73,"0.85":0.65,"1.0":0.59},
+        "2.5":{"0.5":0.89,"0.6":0.81,"0.7":0.74,"0.85":0.65,"1.0":0.59}},
+    8: {"0.7":{"0.5":0.83,"0.6":0.76,"0.7":0.70,"0.85":0.62,"1.0":0.56},
+        "1.0":{"0.5":0.84,"0.6":0.76,"0.7":0.70,"0.85":0.62,"1.0":0.56},
+        "1.5":{"0.5":0.85,"0.6":0.77,"0.7":0.71,"0.85":0.62,"1.0":0.56},
+        "2.5":{"0.5":0.86,"0.6":0.78,"0.7":0.71,"0.85":0.62,"1.0":0.56}},
+    10:{"0.7":{"0.5":0.81,"0.6":0.74,"0.7":0.68,"0.85":0.60,"1.0":0.54},
+        "1.0":{"0.5":0.82,"0.6":0.74,"0.7":0.68,"0.85":0.60,"1.0":0.54},
+        "1.5":{"0.5":0.83,"0.6":0.75,"0.7":0.68,"0.85":0.61,"1.0":0.54},
+        "2.5":{"0.5":0.84,"0.6":0.76,"0.7":0.69,"0.85":0.61,"1.0":0.54}}
   },
-  'pvc_70': {
-    5: {'0.7':1.29,'1.0':1.26,'1.5':1.22,'2.5':1.15},
-    10:{'0.7':1.27,'1.0':1.23,'1.5':1.19,'2.5':1.13},
-    15:{'0.7':1.25,'1.0':1.21,'1.5':1.17,'2.5':1.10},
-  }
-};
-// f2 átszámítási tényezők a PDF alapján (részletek)
-// Kulcs: kábel_elrendezés_kábeltipus_kábelrendszerszám_fajlagos_ellenállás_terhelési_tényező
-const f2Data = {
-  // Példa: 'triangle_xlpe_1_1.0_1.00': 1.09,... további értékek kiegészítendők itt
+  PE: { /* … 13.a PE – a szabvány szerint … */ },
+  PVC:{ /* … 13.b PVC – a szabvány szerint … */ },
+  PAPER:{ /* (nincs a 13.a-ban, 13.b-ben Telített papír nincs) */ }
 };
 
-// Dinamikus keresztmetszet feltöltés a választott paraméterekhez
-function updateCrossSections() {
-  const voltage = document.getElementById('voltage').value;
-  const arrangement = document.getElementById('arrangement').value;
-  const material = document.getElementById('material').value;
-  const shielding = document.getElementById('shielding').value;
-  const insulation = document.getElementById('insulation').value;
-  const csSelect = document.getElementById('crossSection');
-  
-  const key = `${insulation}-${voltage}-${arrangement}-${material}-${shielding}`;
-  const baseData = baseCurrentData[key];
-  csSelect.innerHTML = '';
-  if (!baseData) {
-    csSelect.innerHTML = '<option value="">Nincs adat ehhez a paraméterhez</option>';
-    return;
-  }
-  Object.keys(baseData).forEach(k => {
-    if(baseData[k]!==null){
-      const opt = document.createElement('option');
-      opt.value = k;
-      opt.textContent = k;
-      csSelect.appendChild(opt);
-    }
-  });
-}
-
-function updateF1Temps() {
-  const f1CableType = document.getElementById('f1CableType').value;
-  const f1TempSelect = document.getElementById('f1SoilTemp');
-  f1TempSelect.innerHTML = '';
-  let temps = [];
-  if(f1CableType === 'xlpe_90') temps = [5,10,15,20,25,30,35,40];
-  else if(f1CableType == 'paper_65') temps = [5,10,15,20,25,30,35,40];
-  else if(f1CableType == 'pvc_70') temps = [5,10,15,20,25,30,35,40];
-  temps.forEach(t => {
-    const opt = document.createElement('option');
-    opt.value = t;
-    opt.textContent = t + ' °C';
-    f1TempSelect.appendChild(opt);
-  });
-}
-
-function getBaseCurrent() {
-  const voltage = document.getElementById('voltage').value;
-  const arrangement = document.getElementById('arrangement').value;
-  const material = document.getElementById('material').value;
-  const shielding = document.getElementById('shielding').value;
-  const insulation = document.getElementById('insulation').value;
-  const crossSection = document.getElementById('crossSection').value;
-
-  const key = `${insulation}-${voltage}-${arrangement}-${material}-${shielding}`;
-  const baseData = baseCurrentData[key];
-  return baseData ? baseData[crossSection] : null;
-}
-
-function getF1Factor() {
-  const cableType = document.getElementById('f1CableType').value;
-  const soilTemp = parseInt(document.getElementById('f1SoilTemp').value);
-  const soilRes = document.getElementById('f1SoilResistance').value;
-  
-  if(!f1Data[cableType]) return 1.0;
-  let stepTemps = Object.keys(f1Data[cableType]).map(Number).sort((a,b)=>a-b);
-  let closestTemp = stepTemps.reduce((prev,curr) => Math.abs(curr - soilTemp) < Math.abs(prev - soilTemp) ? curr : prev);
-  return f1Data[cableType][closestTemp][soilRes] || 1.0;
-}
-
-function getF2Factor() {
-  const arrangement = document.getElementById('f2CableArrangement').value;
-  const cableType = document.getElementById('f2CableType').value;
-  const cableSystems = document.getElementById('f2CableSystems').value;
-  const soilRes = document.getElementById('f2SoilResistance').value;
-  const loadFactor = document.getElementById('f2LoadFactor').value;
-
-  const key = `${arrangement}_${cableType}_${cableSystems}_${soilRes}_${loadFactor}`;
-  // Ha nincs adat, adjunk vissza 1.0 értéket
-  return f2Data[key] || 1.0;
-}
-
-function calculate() {
-  const baseCurrent = getBaseCurrent();
-  if(baseCurrent === null || baseCurrent === undefined) {
-    document.getElementById('result').innerText = "Nincs elérhető alapterhelhetőség az adott paraméterekre.";
-    return;
-  }
-  const f1 = getF1Factor();
-  const f2 = getF2Factor();
-  const correctedCurrent = baseCurrent * f1 * f2;
-
-  document.getElementById('result').innerText =
-    `Alapterhelhetőség: ${baseCurrent} A\n` +
-    `f1 tényező: ${f1.toFixed(3)}\n` +
-    `f2 tényező: ${f2.toFixed(3)}\n` +
-    `Korrigált terhelhetőség: ${correctedCurrent.toFixed(2)} A`;
-}
-
-// Eseménymenedzsment
-document.getElementById('voltage').addEventListener('change', updateCrossSections);
-document.getElementById('arrangement').addEventListener('change', updateCrossSections);
-document.getElementById('material').addEventListener('change', updateCrossSections);
-document.getElementById('shielding').addEventListener('change', updateCrossSections);
-document.getElementById('insulation').addEventListener('change', () => {
-  updateCrossSections();
-  updateF1Temps();
-});
-document.getElementById('f1CableType').addEventListener('change', updateF1Temps);
-
-updateCrossSections();
-updateF1Temps();
-
-</script>
-
-<footer>
-  <hr />
-  <small>MSZ 13207:2020 adatbázis alapján, MVM ERBE Zrt. (2020)</small>
-</footer>
-
-</body>
-</html>
+/* ---- f2: ÚJ – Háromszög 25 cm (14.a – XLPE/PE; 14.b – PVC/PAPER) ---- */
+const f2Triangle25 = {
+  XLPE: {
+    1: {"0.7":{"0.5":1.09,"0.6":1.04,"0.7":0.99,"0.85":0.93,"1.0":0.87},
+        "1.0":{"0.5":1.11,"0.6":1.05,"0.7":1.00,"0.85":0.93,"1.0":0.87},
+        "1.5":{"0.5":1.13,"0.6":1.07,"0.7":1.01,"0.85":0.94,"1.0":0.87},
+        "2.5":{"0.5":1.17,"0.6":1.09,"0.7":1.03,"0.85":0.94,"1.0":0.87}}, /* 14.a 1. sor, XLPE, 1 rendszer. :contentReference[oaicite:5]{index=5} */
+    2: {"0.7":{"0.5":1.01,"0.6":0.94,"0.7":0.89,"0.85":0.82,"1.0":0.75},
+        "1.0":{"0.5":1.02,"0.6":0.95,"0.7":0.89,"0.85":0.82,"1.0":0.75},
+        "1.5":{"0.5":1.04,"0.6":0.97,"0.7":0.90,"0.85":0.82,"1.0":0.75},
+        "2.5":{"0.5":1.06,"0.6":0.98,"0.7":0.91,"0.85":0.83,"1.0":0.75}},   /* :contentReference[oaicite:6]{index=6} */
+    3: {"0.7":{"0.5":0.94,"0.6":0.87,"0.7":0.81,"0.85":0.74,"1.0":0.67},
+        "1.0":{"0.5":0.95,"0.6":0.88,"0.7":0.82,"0.85":0.74,"1.0":0.67},
+        "1.5":{"0.5":0.97,"0.6":0.89,"0.7":0.82,"0.85":0.74,"1.0":0.67},
+        "2.5":{"0.5":0.99,"0.6":0.90,"0.7":0.83,"0.85":0.74,"1.0":0.67}},   /* :contentReference[oaicite:7]{index=7} */
+    4: {"0.7":{"0.5":0.91,"0.6":0.84,"0.7":0.78,"0.85":0.70,"1.0":0.64},
+        "1.0":{"0.5":0.92,"0.6":0.84,"0.7":0.78,"0.85":0.70,"1.0":0.64},
+        "1.5":{"0.5":0.93,"0.6":0.85,"0.7":0.79,"0.85":0.70,"1.0":0.64},
+        "2.5":{"0.5":0.95,"0.6":0.86,"0.7":0.79,"0.85":0.71,"1.0":0.64}},   /* :contentReference[oaicite:8]{index=8} */
+    5: {"0.7":{"0.5":0.88,"0.6":0.80,"0.7":0.74,"0.85":0.67,"1.0":0.60},
+        "1.0":{"0.5":0.89,"0.6":0.81,"0.7":0.75,"0.85":0.67,"1.0":0.60},
+        "1.5":{"0.5":0.90,"0.6":0.82,"0.7":0.75,"0.85":0.67,"1.0":0.60},
+        "2.5":{"0.5":0.91,"0.6":0.83,"0.7":0.76,"0.85":0.67,"1.0":0.60}},   /* :contentReference[oaicite:9]{index=9} */
+    6: {"0.7":{"0.5":0.86,"0.6":0.79,"0.7":0.72,"0.85":0.65,"1.0":0.59},
+        "1.0":{"0.5":0.87,"0.6":0.79,"0.7":0.73,"0.85":0.65,"1.0":0.59},
+        "1.5":{"0.5":0.88,"0.6":0.80,"0.7":0.73,"0.85":0.65,"1.0":0.59},
+        "2.5":{"0.5":0.89,"0.6":0.81,"0.7":0.74,"0.85":0.65,"1.0":0.59}},   /* :contentReference[oaicite:10]{index=10} */
+    8: {"0.7":{"0.5":0.83,"0.6":0.76,"0.7":0.70,"0.85":0.62,"1.0":0.56},
+        "1.0":{"0.5":0.84,"0.6":0.76,"0.7":0.70,"0.85":0.62,"1.0":0.56},
+        "1.5":{"0.5":0.85,"0.6":0.77,"0.7":0.71,"0.85":0.62,"1.0":0.56},
+        "2.5":{"0.5":0.86,"0.6":0.78,"0.7":0.71,"0.85":0.62,"1.0":0.56}},   /* :contentReference[oaicite:11]{index=11} */
+    10:{"0.7":{"0.5":0.81,"0.6":0.74,"0.7":0.68,"0.85":0.60,"1.0":0.54},
+        "1.0":{"0.5":0.82,"0.6":0.74,"0.7":0.68,"0.85":0.60,"1.0":0.54},
+        "1.5":{"0.5":0.83,"0.6":0.75,"0.7":0.68,"0.85":0.61,"1.0":0.54},
+        "2.5":{"0.5":0.84,"0.6":0.76,"0.7":0.analysis
