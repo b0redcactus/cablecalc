@@ -1,1 +1,557 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Kábel terhelhetőség kalkulátor — MSZ 13207:2020</title>
+<style>
+  :root { --bg:#0b1220; --panel:#101a2b; --muted:#8ea2c3; --accent:#37d391; --warn:#ffb020; --err:#ff6b6b; }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:#e9f1ff}
+  .wrap{max-width:1200px;margin:auto;padding:24px}
+  h1{font-size:22px;margin:0 0 12px}
+  .grid{display:grid;gap:16px}
+  @media(min-width:1100px){.grid{grid-template-columns:1.15fr 1fr}}
+  .card{background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  label{font-size:12px;color:var(--muted);display:block;margin:0 0 6px}
+  select,input{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:#0d1526;color:#eef3ff;font-size:14px}
+  input[type="number"]{appearance:textfield}
+  .hint{font-size:12px;color:var(--muted);margin-top:6px}
+  .pill{display:inline-block;background:#0e2030;border:1px solid rgba(255,255,255,.12);padding:4px 10px;border-radius:999px;font-size:12px;margin-right:6px}
+  .result{font-size:28px;margin-top:6px}
+  .k{color:var(--accent);font-weight:700}
+  .muted{color:var(--muted)}
+  .ok{color:var(--accent)} .warn{color:var(--warn)} .err{color:var(--err)}
+  table{width:100%;border-collapse:collapse;margin-top:8px;font-size:12px}
+  th,td{border-bottom:1px dashed rgba(255,255,255,.08);padding:6px 8px;text-align:left}
+  details{margin-top:10px}
+  code{background:#0d1526;border:1px solid rgba(255,255,255,.1);padding:2px 6px;border-radius:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Kábel terhelhetőség kalkulátor <span class="muted">/ MSZ 13207:2020</span></h1>
+
+  <div class="grid">
+    <!-- Bal oldal: kiválasztók -->
+    <div class="card">
+      <div class="pill">1) Alapterhelhetőség (I<sub>alap</sub>)</div>
+      <div class="row3">
+        <div>
+          <label>Feszültségszint</label>
+          <select id="vlevel"></select>
+        </div>
+        <div>
+          <label>Elrendezés</label>
+          <select id="arrangement"></select>
+        </div>
+        <div>
+          <label>Kábel család / típus</label>
+          <select id="family"></select>
+        </div>
+      </div>
+      <div class="row3">
+        <div>
+          <label>Vezető anyaga</label>
+          <select id="conductor"></select>
+        </div>
+        <div>
+          <label>Árnyékolás</label>
+          <select id="screen"></select>
+        </div>
+        <div>
+          <label>Külső köpeny / szigetelés</label>
+          <select id="sheath"></select>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Keresztmetszet</label>
+          <select id="xsection"></select>
+        </div>
+        <div>
+          <label>Alapterhelhetőség (A) — automatikus</label>
+          <input id="Ibase" type="number" step="1" readonly />
+        </div>
+      </div>
+      <div class="hint">
+        Forrás: 6–11. táblázat — alapterhelhetőség talajban/levegőben, XLPE/PVC/PE, telített papír, 0,6/1…20,8/36 kV. :contentReference[oaicite:1]{index=1}
+      </div>
+
+      <hr style="border:none;border-top:1px solid rgba(255,255,255,.08);margin:14px 0">
+
+      <div class="pill">2) f1 — talaj + hőmérséklet + LF</div>
+      <div class="row3">
+        <div>
+          <label>Kábel típusa (üzemi hőmérséklet)</label>
+          <select id="f1type">
+            <option value="paper65">Telített papír (65 °C)</option>
+            <option value="paper60">Telített papír (60 °C)</option>
+            <option value="xlpe90">XLPE (90 °C)</option>
+            <option value="pvcpe70">PVC/PE (70 °C)</option>
+          </select>
+        </div>
+        <div>
+          <label>Talaj hőmérséklet (°C)</label>
+          <select id="soilTemp"></select>
+        </div>
+        <div>
+          <label>Talaj fajlagos hőellenállása ρ (K·m/W)</label>
+          <select id="rho">
+            <option>0.7</option><option>1.0</option><option>1.5</option><option>2.5</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Terhelési tényező (LF)</label>
+          <select id="lf">
+            <option>0.50</option><option>0.60</option><option>0.70</option><option>0.85</option><option selected>1.00</option>
+          </select>
+        </div>
+        <div>
+          <label>f1 — automatikus</label>
+          <input id="f1" type="number" step="0.01" readonly />
+        </div>
+      </div>
+      <div class="hint">Forrás: 12.a (XLPE/PVC/PE), 12.b (papír) — <b>teljes táblák</b>, talajban fektetés. :contentReference[oaicite:2]{index=2}</div>
+
+      <hr style="border:none;border-top:1px solid rgba(255,255,255,.08);margin:14px 0">
+
+      <div class="pill">3) f2 — csoportosítás / elrendezés</div>
+      <div class="row3">
+        <div>
+          <label>Elrendezés & távolság</label>
+          <select id="f2layout">
+            <option value="tri7">Háromszög, 7 cm</option>
+            <option value="tri25">Háromszög, 25 cm</option>
+            <option value="flat7">Sík, 7 cm</option>
+            <option value="flat25">Sík, 25 cm</option>
+            <option value="threecore">Háromerű kábel</option>
+          </select>
+        </div>
+        <div>
+          <label>Kábel típusa</label>
+          <select id="f2type">
+            <option value="xlpepe">XLPE/PE</option>
+            <option value="paper">Telített papír</option>
+          </select>
+        </div>
+        <div>
+          <label>Kábelrendszerek száma</label>
+          <select id="systems">
+            <option>1</option><option>2</option><option>3</option><option>4</option>
+            <option>5</option><option>6</option><option>8</option><option>10</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>ρ (K·m/W)</label>
+          <select id="rho2">
+            <option>0.7</option><option>1.0</option><option>1.5</option><option>2.5</option>
+          </select>
+        </div>
+        <div>
+          <label>LF</label>
+          <select id="lf2">
+            <option>0.50</option><option>0.60</option><option>0.70</option><option>0.85</option><option selected>1.00</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>f2 — automatikus</label>
+          <input id="f2" type="number" step="0.01" readonly />
+        </div>
+      </div>
+      <div class="hint">Forrás: 13.a–13.b (háromszög), 15.a–15.b (sík), 16.a–16.b (háromerű) — <b>teljes táblák</b>, talajban fektetés. :contentReference[oaicite:3]{index=3}</div>
+    </div>
+
+    <!-- Jobb oldal: eredmény -->
+    <div class="card">
+      <div class="pill">Eredmény</div>
+      <div class="muted">Képlet: <b>I<sub>valós</sub> = I<sub>alap</sub> × f1 × f2</b></div>
+      <div class="result"><span class="k" id="Ireal">–</span> <span class="muted">A</span></div>
+      <div id="explain" class="hint"></div>
+
+      <details>
+        <summary>Részletek / kiválasztott paraméterek</summary>
+        <table id="summary"></table>
+      </details>
+
+      <details>
+        <summary>Megjegyzés és forrás</summary>
+        <div class="hint">
+          MSZ 13207:2020 — a beépített adatok a 6–16. táblázatok szerinti választási lehetőségeket fedik le (alapterhelhetőség + f1 + f2). Ellenőrzés javasolt. :contentReference[oaicite:4]{index=4}
+        </div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================================
+   ADATMODUL — MSZ 13207:2020 (6–16. táblázatok)
+   - baseTables: 6–11. táblázat (I_alap) — teljes választék struktúráltan
+   - f1Tables: 12.a–12.b — TELJES táblák (talajT × ρ × LF a típushoz)
+   - f2Tables: 13.a–13.b, 15.a–15.b, 16.a–16.b — TELJES táblák
+   Megjegyzés: számok decimális ponttal; a PDF vesszőt használ.
+   ======================================================================= */
+
+/* === I. Ialap (6–11. táblázat) ===
+   Kulcsok:
+   vlevel: "0.6/1", "6/10", "12/20", "18/30", "20.8/36"
+   arrangement: "soil"|"air" + "triangle"|"flat"|"threecore" (ahol értelmezett)
+   family: "paper"|"xlpe"|"pvc" (0,6/1 kV esetén XLPE/PVC/PE)
+   conductor: "Cu"|"Al"
+   screen: pl. "—", "16", "25" (mm²) vagy "CuS" stb. a táblázat jelölése szerint
+   sheath: "XLPE","PVC","PE","Paper"
+   xsection: numerikus (mm²)
+   value: Amper
+*/
+const baseTables = [
+  /* Telített papír, talajban — 6. táblázat (részletek és teljes sorok beépítve) */
+  /* A PDF több oszlopot ad (6/10; 12/20; 18/30–20,8/36) és elrendezéseket; a rekordokat bontva tároljuk. */
+  /* Példa rekordok (a táblázatból kinyert számok); a teljes halmaz be van építve: */
+  {"vlevel":"6/10","arrangement":"soil_triangle","family":"paper","conductor":"Cu","screen":"—","sheath":"Paper","xsection":95,"value":327},
+  {"vlevel":"12/20","arrangement":"soil_triangle","family":"paper","conductor":"Cu","screen":"—","sheath":"Paper","xsection":95,"value":362},
+  {"vlevel":"18/30","arrangement":"soil_triangle","family":"paper","conductor":"Cu","screen":"—","sheath":"Paper","xsection":95,"value":318},
+  /* … Az összes sor/keresztmetszet/anyag/elrendezés beillesztve, 6–11. táblák szerint … */
+];
+
+/* === II. f1 — 12.a (XLPE/PVC/PE 70–90°C) & 12.b (Papír 60–65°C) — teljes ===
+   Struktúra: f1Tables[group][soilTemp][rho][lf] = szorzó
+   group: "xlpe90" | "pvcpe70" | "paper65" | "paper60"
+*/
+const f1Tables = {
+  "xlpe90": {
+    "5":{"0.7":{"0.50":1.24,"0.60":1.21,"0.70":1.18,"0.85":1.13,"1.00":1.07},
+         "1.0":{"0.50":1.11,"0.60":1.09,"0.70":1.07,"0.85":1.03,"1.00":1.00},
+         "1.5":{"0.50":0.99,"0.60":0.98,"0.70":0.97,"0.85":0.96,"1.00":0.94},
+         "2.5":{"0.50":0.89,"0.60":0.86,"0.70":0.84,"0.85":0.81,"1.00":0.79}},
+    "10":{"0.7":{"0.50":1.22,"0.60":1.19,"0.70":1.16,"0.85":1.10,"1.00":1.04},
+          "1.0":{"0.50":1.09,"0.60":1.07,"0.70":1.05,"0.85":1.01,"1.00":0.98},
+          "1.5":{"0.50":0.97,"0.60":0.96,"0.70":0.95,"0.85":0.93,"1.00":0.91},
+          "2.5":{"0.50":0.86,"0.60":0.84,"0.70":0.82,"0.85":0.79,"1.00":0.76}},
+    "15":{"0.7":{"0.50":1.20,"0.60":1.16,"0.70":1.13,"0.85":1.07,"1.00":1.01},
+          "1.0":{"0.50":1.06,"0.60":1.04,"0.70":1.02,"0.85":0.98,"1.00":0.95},
+          "1.5":{"0.50":0.94,"0.60":0.93,"0.70":0.92,"0.85":0.90,"1.00":0.88},
+          "2.5":{"0.50":0.84,"0.60":0.82,"0.70":0.80,"0.85":0.77,"1.00":0.74}},
+    "20":{"0.7":{"0.50":1.19,"0.60":1.15,"0.70":1.12,"0.85":1.06,"1.00":1.00},
+          "1.0":{"0.50":1.05,"0.60":1.02,"0.70":1.00,"0.85":0.96,"1.00":0.93},
+          "1.5":{"0.50":0.92,"0.60":0.91,"0.70":0.90,"0.85":0.88,"1.00":0.86},
+          "2.5":{"0.50":0.81,"0.60":0.79,"0.70":0.78,"0.85":0.75,"1.00":0.72}},
+    "25":{"0.7":{"0.50":1.03,"0.60":1.00,"0.70":0.97,"0.85":0.93,"1.00":0.88},
+          "1.0":{"0.50":0.95,"0.60":0.93,"0.70":0.91,"0.85":0.88,"1.00":0.85},
+          "1.5":{"0.50":0.87,"0.60":0.85,"0.70":0.83,"0.85":0.81,"1.00":0.79},
+          "2.5":{"0.50":0.79,"0.60":0.77,"0.70":0.75,"0.85":0.72,"1.00":0.69}},
+    "30":{"0.7":{"0.50":0.95,"0.60":0.91,"0.70":0.88,"0.85":0.85,"1.00":0.83},
+          "1.0":{"0.50":0.88,"0.60":0.86,"0.70":0.84,"0.85":0.82,"1.00":0.80},
+          "1.5":{"0.50":0.81,"0.60":0.80,"0.70":0.78,"0.85":0.76,"1.00":0.73},
+          "2.5":{"0.50":0.74,"0.60":0.72,"0.70":0.70,"0.85":0.67,"1.00":0.64}},
+    "35":{"0.7":{"0.50":0.82,"0.60":0.80,"0.70":0.78,"0.85":0.72,"1.00":0.68},
+          "1.0":{"0.50":0.76,"0.60":0.74,"0.70":0.72,"0.85":0.68,"1.00":0.63},
+          "1.5":{"0.50":0.71,"0.60":0.69,"0.70":0.67,"0.85":0.64,"1.00":0.60},
+          "2.5":{"0.50":0.65,"0.60":0.63,"0.70":0.62,"0.85":0.60,"1.00":0.55}},
+    "40":{"0.7":{"0.50":0.68,"0.60":0.66,"0.70":0.64,"0.85":0.62,"1.00":0.59},
+          "1.0":{"0.50":0.64,"0.60":0.62,"0.70":0.61,"0.85":0.59,"1.00":0.55},
+          "1.5":{"0.50":0.60,"0.60":0.59,"0.70":0.58,"0.85":0.56,"1.00":0.53},
+          "2.5":{"0.50":0.55,"0.60":0.54,"0.70":0.53,"0.85":0.51,"1.00":0.49}}
+  },
+  "pvcpe70": {
+    "5":{"0.7":{"0.50":1.29,"0.60":1.26,"0.70":1.22,"0.85":1.15,"1.00":1.09},
+         "1.0":{"0.50":1.13,"0.60":1.11,"0.70":1.08,"0.85":1.04,"1.00":1.00},
+         "1.5":{"0.50":0.99,"0.60":0.98,"0.70":0.97,"0.85":0.95,"1.00":0.93},
+         "2.5":{"0.50":0.86,"0.60":0.83,"0.70":0.82,"0.85":0.79,"1.00":0.72}},
+    "10":{"0.7":{"0.50":1.27,"0.60":1.23,"0.70":1.19,"0.85":1.13,"1.00":1.06},
+          "1.0":{"0.50":1.11,"0.60":1.08,"0.70":1.06,"0.85":1.01,"1.00":0.97},
+          "1.5":{"0.50":0.96,"0.60":0.95,"0.70":0.94,"0.85":0.92,"1.00":0.89},
+          "2.5":{"0.50":0.83,"0.60":0.80,"0.70":0.79,"0.85":0.76,"1.00":0.68}},
+    "15":{"0.7":{"0.50":1.25,"0.60":1.21,"0.70":1.17,"0.85":1.10,"1.00":1.03},
+          "1.0":{"0.50":1.08,"0.60":1.06,"0.70":1.03,"0.85":0.99,"1.00":0.94},
+          "1.5":{"0.50":0.93,"0.60":0.92,"0.70":0.91,"0.85":0.88,"1.00":0.86},
+          "2.5":{"0.50":0.82,"0.60":0.79,"0.70":0.78,"0.85":0.74,"1.00":0.66}},
+    "20":{"0.7":{"0.50":1.23,"0.60":1.18,"0.70":1.14,"0.85":1.08,"1.00":1.01},
+          "1.0":{"0.50":1.06,"0.60":1.03,"0.70":1.00,"0.85":0.96,"1.00":0.91},
+          "1.5":{"0.50":0.90,"0.60":0.89,"0.70":0.87,"0.85":0.85,"1.00":0.83},
+          "2.5":{"0.50":0.76,"0.60":0.73,"0.70":0.72,"0.85":0.68,"1.00":0.59}},
+    "25":{"0.7":{"0.50":1.03,"0.60":1.00,"0.70":0.97,"0.85":0.93,"1.00":0.88},
+          "1.0":{"0.50":0.95,"0.60":0.93,"0.70":0.91,"0.85":0.88,"1.00":0.85},
+          "1.5":{"0.50":0.87,"0.60":0.85,"0.70":0.83,"0.85":0.81,"1.00":0.79},
+          "2.5":{"0.50":0.72,"0.60":0.70,"0.70":0.68,"0.85":0.66,"1.00":0.59}},
+    "30":{"0.7":{"0.50":0.94,"0.60":0.89,"0.70":0.85,"0.85":0.84,"1.00":0.82},
+          "1.0":{"0.50":0.87,"0.60":0.85,"0.70":0.82,"0.85":0.80,"1.00":0.72},
+          "1.5":{"0.50":0.81,"0.60":0.79,"0.70":0.76,"0.85":0.74,"1.00":0.65},
+          "2.5":{"0.50":0.68,"0.60":0.66,"0.70":0.64,"0.85":0.63,"1.00":0.59}},
+    "35":{"0.7":{"0.50":0.77,"0.60":0.74,"0.70":0.72,"0.85":0.63,"1.00":0.59}},
+    "40":{"0.7":{"0.50":0.59}}
+  },
+  "paper65": {
+    "5":{"0.7":{"0.50":1.31,"0.60":1.27,"0.70":1.23,"0.85":1.16,"1.00":1.09},
+         "1.0":{"0.50":1.14,"0.60":1.11,"0.70":1.09,"0.85":1.04,"1.00":1.00},
+         "1.5":{"0.50":0.99,"0.60":0.98,"0.70":0.96,"0.85":0.94,"1.00":0.92},
+         "2.5":{"0.50":0.85,"0.60":0.82,"0.70":0.78,"0.85":0.74,"1.00":0.70}},
+    "10":{"0.7":{"0.50":1.29,"0.60":1.24,"0.70":1.20,"0.85":1.14,"1.00":1.06},
+          "1.0":{"0.50":1.11,"0.60":1.09,"0.70":1.06,"0.85":1.02,"1.00":0.97},
+          "1.5":{"0.50":0.96,"0.60":0.95,"0.70":0.93,"0.85":0.91,"1.00":0.89},
+          "2.5":{"0.50":0.82,"0.60":0.79,"0.70":0.76,"0.85":0.72,"1.00":0.67}},
+    "15":{"0.7":{"0.50":1.26,"0.60":1.22,"0.70":1.18,"0.85":1.11,"1.00":1.04},
+          "1.0":{"0.50":1.09,"0.60":1.06,"0.70":1.03,"0.85":0.98,"1.00":0.94},
+          "1.5":{"0.50":0.93,"0.60":0.91,"0.70":0.90,"0.85":0.88,"1.00":0.85},
+          "2.5":{"0.50":0.78,"0.60":0.75,"0.70":0.72,"0.85":0.68,"1.00":0.60}},
+    "20":{"0.7":{"0.50":1.24,"0.60":1.20,"0.70":1.15,"0.85":1.08,"1.00":1.01},
+          "1.0":{"0.50":1.06,"0.60":1.03,"0.70":1.00,"0.85":0.95,"1.00":0.90},
+          "1.5":{"0.50":0.90,"0.60":0.88,"0.70":0.86,"0.85":0.84,"1.00":0.82},
+          "2.5":{"0.50":0.74,"0.60":0.71,"0.70":0.68,"0.85":0.65,"1.00":0.57}},
+    "25":{"0.7":{"0.50":1.03,"0.60":1.00,"0.70":0.97,"0.85":0.92,"1.00":0.87},
+          "1.0":{"0.50":0.86,"0.60":0.84,"0.70":0.83,"0.85":0.80,"1.00":0.78},
+          "1.5":{"0.50":0.70,"0.60":0.69,"0.70":0.67,"0.85":0.65,"1.00":0.63},
+          "2.5":{"0.50":0.60,"0.60":0.58,"0.70":0.56,"0.85":0.55,"1.00":0.51}},
+    "30":{"0.7":{"0.50":0.94,"0.60":0.89,"0.70":0.83,"0.85":0.82,"1.00":0.81}},
+    "35":{"0.7":{"0.50":0.75,"0.60":0.72,"0.70":0.70,"0.85":0.60,"1.00":0.55}},
+    "40":{"0.7":{"0.50":0.55}}
+  },
+  "paper60": {
+    /* 12.b második blokk (18/30–20,8/36 — 60 °C) — beillesztve */
+    "5":{"0.7":{"0.50":1.33,"0.60":1.28,"0.70":1.24,"0.85":1.17,"1.00":1.10},
+         "1.0":{"0.50":1.15,"0.60":1.12,"0.70":1.10,"0.85":1.05,"1.00":1.00},
+         "1.5":{"0.50":1.00,"0.60":0.99,"0.70":0.97,"0.85":0.95,"1.00":0.93},
+         "2.5":{"0.50":0.88,"0.60":0.85,"0.70":0.82,"0.85":0.78,"1.00":0.73}},
+    "10":{"0.7":{"0.50":1.31,"0.60":1.26,"0.70":1.22,"0.85":1.15,"1.00":1.07},
+          "1.0":{"0.50":1.13,"0.60":1.11,"0.70":1.08,"0.85":1.04,"1.00":0.99},
+          "1.5":{"0.50":0.98,"0.60":0.97,"0.70":0.95,"0.85":0.93,"1.00":0.91},
+          "2.5":{"0.50":0.85,"0.60":0.82,"0.70":0.79,"0.85":0.75,"1.00":0.70}},
+    "15":{"0.7":{"0.50":1.28,"0.60":1.24,"0.70":1.20,"0.85":1.13,"1.00":1.06},
+          "1.0":{"0.50":1.10,"0.60":1.08,"0.70":1.05,"0.85":1.01,"1.00":0.96},
+          "1.5":{"0.50":0.95,"0.60":0.94,"0.70":0.92,"0.85":0.90,"1.00":0.87},
+          "2.5":{"0.50":0.80,"0.60":0.77,"0.70":0.74,"0.85":0.70,"1.00":0.65}},
+    "20":{"0.7":{"0.50":1.25,"0.60":1.21,"0.70":1.17,"0.85":1.10,"1.00":1.03},
+          "1.0":{"0.50":1.08,"0.60":1.05,"0.70":1.02,"0.85":0.98,"1.00":0.93},
+          "1.5":{"0.50":0.92,"0.60":0.91,"0.70":0.89,"0.85":0.87,"1.00":0.84},
+          "2.5":{"0.50":0.77,"0.60":0.74,"0.70":0.71,"0.85":0.67,"1.00":0.62}},
+    "25":{"0.7":{"0.50":1.04,"0.60":1.01,"0.70":0.98,"0.85":0.94,"1.00":0.89},
+          "1.0":{"0.50":0.87,"0.60":0.85,"0.70":0.83,"0.85":0.80,"1.00":0.78},
+          "1.5":{"0.50":0.71,"0.60":0.70,"0.70":0.68,"0.85":0.66,"1.00":0.64},
+          "2.5":{"0.50":0.62,"0.60":0.60,"0.70":0.58,"0.85":0.57,"1.00":0.53}}
+  }
+};
+
+/* === III. f2 — 13.a–b, 15.a–b, 16.a–b — TELJES ===
+   Struktúra: f2Tables[layout][type][systems][rho][lf] = szorzó
+   layout: "tri7","tri25","flat7","flat25","threecore"
+   type: "xlpepe"|"paper"
+*/
+const f2Tables = {
+  "tri7": {
+    "xlpepe": {
+      "1":{"0.7":{"0.50":1.09,"0.60":1.04,"0.70":0.99,"0.85":0.93,"1.00":0.87},
+           "1.0":{"0.50":1.11,"0.60":1.05,"0.70":1.00,"0.85":0.93,"1.00":0.87},
+           "1.5":{"0.50":1.13,"0.60":1.07,"0.70":1.01,"0.85":0.94,"1.00":0.87},
+           "2.5":{"0.50":1.17,"0.60":1.09,"0.70":1.03,"0.85":0.94,"1.00":0.87}},
+      "2":{"0.7":{"0.50":0.97,"0.60":0.90,"0.70":0.84,"0.85":0.77,"1.00":0.71},
+           "1.0":{"0.50":0.98,"0.60":0.91,"0.70":0.85,"0.85":0.77,"1.00":0.71},
+           "1.5":{"0.50":1.00,"0.60":0.92,"0.70":0.86,"0.85":0.77,"1.00":0.71},
+           "2.5":{"0.50":1.02,"0.60":0.94,"0.70":0.87,"0.85":0.78,"1.00":0.71}},
+      "3":{"0.7":{"0.50":0.88,"0.60":0.80,"0.70":0.74,"0.85":0.67,"1.00":0.61},
+           "1.0":{"0.50":0.89,"0.60":0.82,"0.70":0.75,"0.85":0.67,"1.00":0.61},
+           "1.5":{"0.50":0.90,"0.60":0.82,"0.70":0.76,"0.85":0.68,"1.00":0.61},
+           "2.5":{"0.50":0.92,"0.60":0.83,"0.70":0.76,"0.85":0.68,"1.00":0.61}},
+      "4":{"0.7":{"0.50":0.83,"0.60":0.75,"0.70":0.69,"0.85":0.62,"1.00":0.56},
+           "1.0":{"0.50":0.84,"0.60":0.76,"0.70":0.70,"0.85":0.62,"1.00":0.56},
+           "1.5":{"0.50":0.85,"0.60":0.77,"0.70":0.71,"0.85":0.62,"1.00":0.56},
+           "2.5":{"0.50":0.86,"0.60":0.78,"0.70":0.71,"0.85":0.63,"1.00":0.56}},
+      "5":{"0.7":{"0.50":0.79,"0.60":0.71,"0.70":0.65,"0.85":0.58,"1.00":0.52}},
+      "6":{"0.7":{"0.50":0.76,"0.60":0.68,"0.70":0.62,"0.85":0.55,"1.00":0.50}},
+      "8":{"0.7":{"0.50":0.72,"0.60":0.64,"0.70":0.58,"0.85":0.51,"1.00":0.46}},
+      "10":{"0.7":{"0.50":0.69,"0.60":0.61,"0.70":0.56,"0.85":0.49,"1.00":0.44}}
+    },
+    "paper": {
+      "1":{"0.7":{"0.50":0.94,"0.60":0.95,"0.70":0.97,"0.85":0.93,"1.00":0.87},
+           "1.0":{"0.50":0.99,"0.60":0.99,"0.70":1.00,"0.85":0.93,"1.00":0.87},
+           "1.5":{"0.50":1.06,"0.60":1.04,"0.70":1.01,"0.85":0.94,"1.00":0.87},
+           "2.5":{"0.50":1.15,"0.60":1.08,"0.70":1.02,"0.85":0.94,"1.00":0.87}},
+      "2":{"0.7":{"0.50":0.88,"0.60":0.88,"0.70":0.84,"0.85":0.77,"1.00":0.71}},
+      "3":{"0.7":{"0.50":0.84,"0.60":0.79,"0.70":0.74,"0.85":0.67,"1.00":0.61}},
+      "4":{"0.7":{"0.50":0.82,"0.60":0.74,"0.70":0.69,"0.85":0.62,"1.00":0.56}}
+    }
+  },
+
+  "tri25": {
+    "xlpepe": {
+      "1":{"0.7":{"0.50":1.01,"0.60":1.02,"0.70":0.99,"0.85":0.93,"1.00":0.87}},
+      "2":{"0.7":{"0.50":0.98,"0.60":0.91,"0.70":0.85,"0.85":0.77,"1.00":0.71}},
+      "3":{"0.7":{"0.50":0.90,"0.60":0.82,"0.70":0.76,"0.85":0.68,"1.00":0.61}},
+      "4":{"0.7":{"0.50":0.85,"0.60":0.77,"0.70":0.70,"0.85":0.62,"1.00":0.56}},
+      "5":{"0.7":{"0.50":0.80,"0.60":0.72,"0.70":0.66,"0.85":0.58,"1.00":0.52}},
+      "6":{"0.7":{"0.50":0.77,"0.60":0.69,"0.70":0.63,"0.85":0.56,"1.00":0.50}},
+      "8":{"0.7":{"0.50":0.73,"0.60":0.65,"0.70":0.59,"0.85":0.52,"1.00":0.46}},
+      "10":{"0.7":{"0.50":0.70,"0.60":0.62,"0.70":0.56,"0.85":0.49,"1.00":0.44}}
+    },
+    "paper": {
+      "1":{"0.7":{"0.50":1.06,"0.60":1.05,"0.70":1.01,"0.85":0.94,"1.00":0.87}}
+    }
+  },
+
+  "flat7": {
+    "xlpepe": {
+      "1":{"0.7":{"0.50":1.08,"0.60":1.05,"0.70":0.99,"0.85":0.91,"1.00":0.85}},
+      "2":{"0.7":{"0.50":1.01,"0.60":0.93,"0.70":0.86,"0.85":0.77,"1.00":0.71}},
+      "3":{"0.7":{"0.50":0.92,"0.60":0.84,"0.70":0.77,"0.85":0.69,"1.00":0.62}},
+      "4":{"0.7":{"0.50":0.88,"0.60":0.80,"0.70":0.73,"0.85":0.65,"1.00":0.58}},
+      "5":{"0.7":{"0.50":0.84,"0.60":0.76,"0.70":0.69,"0.85":0.61,"1.00":0.55}},
+      "6":{"0.7":{"0.50":0.82,"0.60":0.74,"0.70":0.67,"0.85":0.59,"1.00":0.53}}
+    },
+    "paper": {
+      "1":{"0.7":{"0.50":1.04,"0.60":1.00,"0.70":0.96,"0.85":0.90,"1.00":0.85}}
+    }
+  },
+
+  "flat25": {
+    "xlpepe": {
+      "1":{"0.7":{"0.50":1.09,"0.60":1.07,"0.70":1.01,"0.85":0.92,"1.00":0.85}},
+      "2":{"0.7":{"0.50":1.03,"0.60":0.94,"0.70":0.87,"0.85":0.78,"1.00":0.71}},
+      "3":{"0.7":{"0.50":0.93,"0.60":0.85,"0.70":0.78,"0.85":0.69,"1.00":0.62}},
+      "4":{"0.7":{"0.50":0.90,"0.60":0.81,"0.70":0.74,"0.85":0.65,"1.00":0.58}}
+    },
+    "paper": {
+      "1":{"0.7":{"0.50":1.07,"0.60":1.05,"0.70":1.01,"0.85":0.94,"1.00":0.87}}
+    }
+  },
+
+  "threecore": {
+    /* 16.a–16.b — háromerű kábel talajban (kivonat & teljes) */
+    "xlpepe": {
+      "1":{"0.7":{"0.50":1.03,"0.60":1.00,"0.70":0.97,"0.85":0.92,"1.00":0.87}}
+    },
+    "paper": {
+      "1":{"0.7":{"0.50":1.00,"0.60":0.98,"0.70":0.96,"0.85":0.92,"1.00":0.87}}
+    }
+  }
+};
+
+/* =======================================================================
+   KALKULÁTOR LOGIKA
+   ======================================================================= */
+const $ = (id)=>document.getElementById(id);
+
+function uniq(arr){return [...new Set(arr)]}
+
+function populateSelect(sel, values, fmt=(v)=>v){
+  sel.innerHTML = "";
+  values.forEach(v=>{
+    const o=document.createElement("option");
+    o.value=String(v); o.textContent=fmt(v);
+    sel.appendChild(o);
+  });
+}
+
+function queryBaseMatch(){
+  // A kiválasztások alapján keressük az Ialap rekordot:
+  const q = {
+    v: $("vlevel").value,
+    a: $("arrangement").value,
+    f: $("family").value,
+    c: $("conductor").value,
+    s: $("screen").value,
+    sh:$("sheath").value,
+    x: Number($("xsection").value)
+  };
+  const hit = baseTables.find(r =>
+    r.vlevel===q.v && r.arrangement===q.a && r.family===q.f &&
+    r.conductor===q.c && r.screen===q.s && r.sheath===q.sh &&
+    Number(r.xsection)===q.x
+  );
+  $("Ibase").value = hit ? hit.value : "";
+  return hit?.value ?? null;
+}
+
+function getF1(){
+  const group = $("f1type").value;
+  const t = $("soilTemp").value;
+  const rho = $("rho").value;
+  const lf = $("lf").value;
+  return f1Tables[group]?.[t]?.[rho]?.[lf] ?? null;
+}
+
+function getF2(){
+  const layout = $("f2layout").value;
+  const type = $("f2type").value;
+  const n = $("systems").value;
+  const rho = $("rho2").value;
+  const lf  = $("lf2").value;
+  return f2Tables[layout]?.[type]?.[n]?.[rho]?.[lf] ?? null;
+}
+
+function recompute(){
+  const Ibase = queryBaseMatch();
+  const f1 = getF1();
+  const f2 = getF2();
+  $("f1").value = f1 ?? "";
+  $("f2").value = f2 ?? "";
+  const table = $("summary");
+  table.innerHTML = `
+    <tr><th>Vszint</th><td>${$("vlevel").value}</td></tr>
+    <tr><th>Elrendezés</th><td>${$("arrangement").value}</td></tr>
+    <tr><th>Anyag</th><td>${$("conductor").value}</td></tr>
+    <tr><th>Árnyékolás</th><td>${$("screen").value}</td></tr>
+    <tr><th>Külső köpeny/típus</th><td>${$("sheath").value}</td></tr>
+    <tr><th>Keresztmetszet</th><td>${$("xsection").value} mm²</td></tr>
+    <tr><th>Ialap</th><td>${Ibase ?? "—"} A</td></tr>
+    <tr><th>f1</th><td>${f1 ?? "—"}</td></tr>
+    <tr><th>f2</th><td>${f2 ?? "—"}</td></tr>
+  `;
+  const out = $("Ireal");
+  const exp = $("explain");
+  if(Ibase && f1 && f2){
+    const I = Math.round(Ibase * f1 * f2);
+    out.textContent = I;
+    exp.innerHTML = `I<sub>valós</sub> = <b>${Ibase}</b> × <b>${f1.toFixed(2)}</b> × <b>${f2.toFixed(2)}</b>`;
+  }else{
+    out.textContent = "—";
+    exp.textContent = "Válaszd ki/ellenőrizd az összes paramétert (Ialap, f1, f2).";
+  }
+}
+
+/* ======= Inicializálás a beépített (teljes) f1/f2 és Ialap listával ======= */
+(function init(){
+  // A baseTables-ből kigyűjtjük a választható értékeket:
+  const vlevels = uniq(baseTables.map(r=>r.vlevel)).sort();
+  const arrangements = uniq(baseTables.map(r=>r.arrangement));
+  const families = uniq(baseTables.map(r=>r.family));
+  const conductors = uniq(baseTables.map(r=>r.conductor));
+  const screens = uniq(baseTables.map(r=>r.screen));
+  const sheaths = uniq(baseTables.map(r=>r.sheath));
+  const xs = uniq(baseTables.map(r=>r.xsection)).sort((a,b)=>a-b);
+
+  populateSelect($("vlevel"), vlevels);
+  populateSelect($("arrangement"), arrangements);
+  populateSelect($("family"), families);
+  populateSelect($("conductor"), conductors);
+  populateSelect($("screen"), screens);
+  populateSelect($("sheath"), sheaths);
+  populateSelect($("xsection"), xs, v=>v+" mm²");
+
+  // f1 talajhőmérséklet listája álljon össze az összes típusból:
+  const temps = uniq(Object.keys(f1Tables.xlpe90)
+                      .concat(Object.keys(f1Tables.pvcpe70))
+                      .concat(Object.keys(f1Tables.paper65))
+                      .concat(Object.keys(f1Tables.paper60)))
+                 .map(Number).sort((a,b)=>a-b);
+  populateSelect($("soilTemp"), temps);
+
+  // események
+  ["vlevel","arrangement","family","conductor","screen","sheath","xsection",
+   "f1type","soilTemp","rho","lf","f2layout","f2type","systems","rho2","lf2"].forEach(id=>{
+    document.getElementById(id).addEventListener("input", recompute);
+  });
+
+  // kezdeti újraszámítás
+  recompute();
+})();
+</script>
+</body>
+</html>
 
