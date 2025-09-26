@@ -17,13 +17,11 @@
 
 ## Funkciók
 
-- **MSZ 13207:2020** táblák alapján számolt **f1** és **f2** korrekciós tényezők.
+- **f1** és **f2** korrekciós tényezők.
 - Paraméterek: *kábel típusa*, *talajhőmérséklet*, *talaj fajlagos hőellenállás (ρ)*, *terhelési tényező*, *elrendezés*, *rendszerek száma*.
 - **Védőcső opció**: ha *Igen*, a végeredmény további **0,85** szorzót kap.
 - Azonnali visszajelzés: külön megjelenik az **f1**, **f2** és a **végső A**.
-- **Minimalista, reszponzív** felhasználói felület.
 - 100% **offline** – nincs külső függőség.
-- (Ha beépítve) **Dark/Light mód** váltó.
 
 ---
 
