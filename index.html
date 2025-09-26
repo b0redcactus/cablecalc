@@ -369,7 +369,7 @@ const f2Data = {
     }
   },
 
-  "triangle7": {
+  "triangle7b": {
     "PVC": {
       "1": {
         "0.7": {"0.5":1.01,"0.6":1.02,"0.7":0.99,"0.85":0.93,"1.0":0.87},
@@ -575,7 +575,7 @@ const f2Data = {
     }
   },
 
-  "triangle25": {
+  "triangle25b": {
     "PVC": {
       "1": {
         "0.7": {"0.5":1.01,"0.6":1.02,"0.7":0.99,"0.85":0.93,"1.0":0.87},
@@ -781,7 +781,7 @@ const f2Data = {
     }
   },
 
-  "flat7": {
+  "flat7b": {
     "PVC": {
       "1": {
         "0.7": {"0.5":0.96,"0.6":0.97,"0.7":0.98,"0.85":0.91,"1.0":0.85},
@@ -987,7 +987,7 @@ const f2Data = {
     }
   },
 
-  "3core": {
+  "3coreb": {
     "PVC": {
       "1": {
         "0.7": {"0.5":0.91,"0.6":0.92,"0.7":0.94,"0.85":0.94,"1.0":0.89},
@@ -1106,41 +1106,95 @@ function getNested(obj, keys) {
   return keys.reduce((o,k) => o && k in o ? o[k] : null, obj);
 }
 
-// f1 lekérdezés a komplex struktúrából
+// Segéd: LF kulcshoz stringesítés (f1 táblákhoz)
+function lfKeyF1(n) {
+  if (n === 1) return "1.00";
+  if (n === 0.85) return "0.85";
+  return n.toFixed(2); // 0.5 -> "0.50", 0.6 -> "0.60", 0.7 -> "0.70"
+}
+// Segéd: LF kulcshoz stringesítés (f2 táblákhoz)
+function lfKeyF2(n) {
+  if (n === 1) return "1.0";
+  if (n === 0.85) return "0.85";
+  return n.toString(); // 0.5 -> "0.5", 0.6 -> "0.6", 0.7 -> "0.7"
+}
+
+// f1 lekérdezés (fix: fallback kulcs pontos stringgé)
 function getF1Value(type, soilT, rho, lf) {
-  const temps=f1Data[type];
-  if(!temps) return null;
-  const tKey=findClosestKey(Object.keys(temps), soilT);
-  if(!tKey) return null;
-  const rhoData=temps[tKey];
-  const rKey=findClosestKey(Object.keys(rhoData), rho);
-  if(!rKey) return null;
-  const lfData=rhoData[rKey];
-  if(lf in lfData) return lfData[lf];
-  // ha nincs pontos, keressünk legközelebbit csökkentettet
-  let lfs=Object.keys(lfData).map(parseFloat).sort((a,b)=>a-b);
-  for(let i=lfs.length-1;i>=0;i--) if(lf>=lfs[i]) return lfData[lfs[i]];
+  const temps = f1Data[type];
+  if (!temps) return null;
+
+  const tKey = findClosestKey(Object.keys(temps), Number(soilT));
+  if (!tKey) return null;
+
+  const rhoData = temps[tKey];
+  const rKey = findClosestKey(Object.keys(rhoData), parseFloat(rho));
+  if (!rKey) return null;
+
+  const lfData = rhoData[rKey];
+
+  // 1) Pontos egyezés (a select eleve a jó formát adja, pl. "0.50", "1.00")
+  if (lf in lfData) return lfData[lf];
+
+  // 2) Fallback: legnagyobb, de <= kiválasztott LF (pl. "0.55" -> "0.50")
+  const lfs = Object.keys(lfData).map(parseFloat).sort((a,b)=>a-b); // [0.5,0.6,0.7,0.85,1]
+  for (let i = lfs.length - 1; i >= 0; i--) {
+    if (parseFloat(lf) >= lfs[i]) {
+      const key = lfKeyF1(lfs[i]);
+      return lfData[key];
+    }
+  }
   return null;
 }
 
-// f2 lekérdezés az összes táblázatból
-  
+// f2 lekérdezés (fix: LF normalizálás + fallback kulcs stringgé)
 function getF2Value(arr, type, systems, rho, lf) {
-  const table=f2Data[arr];
-  if(!table) return null;
-  const typeData=table[type];
-  if(!typeData) return null;
-  const sysKey=findClosestKey(Object.keys(typeData), systems);
-  if(!sysKey) return null;
-  const rhoData=typeData[sysKey];
-  const rKey=findClosestKey(Object.keys(rhoData), rho);
-  if(!rKey) return null;
-  const lfData=rhoData[rKey];
-  if(lf in lfData) return lfData[lf];
-  let lfs=Object.keys(lfData).map(parseFloat).sort((a,b)=>a-b);
-  for(let i=lfs.length-1;i>=0;i--) if(lf>=lfs[i]) return lfData[lfs[i]];
+  const table = f2Data[arr];
+  if (!table) return null;
+
+  const typeData = table[type];
+  if (!typeData) return null;
+
+  const sysKey = findClosestKey(Object.keys(typeData), Number(systems));
+  if (!sysKey) return null;
+
+  const rhoData = typeData[sysKey];
+  const rKey = findClosestKey(Object.keys(rhoData), parseFloat(rho));
+  if (!rKey) return null;
+
+  const lfData = rhoData[rKey];
+
+  // 1) Próbáljuk meg a pontos egyezést (a select itt "0.50", "1.00" stb. — ez NEM egyezik az f2 kulcsokkal)
+  if (lf in lfData) return lfData[lf];
+
+  // 2) Normalizáljuk az LF-et f2 kulcshoz (pl. "0.50"->"0.5", "1.00"->"1.0")
+  const lfNorm = lfKeyF2(parseFloat(lf));
+  if (lfNorm in lfData) return lfData[lfNorm];
+
+  // 3) Fallback: legnagyobb, de <= kiválasztott LF
+  const lfs = Object.keys(lfData).map(parseFloat).sort((a,b)=>a-b); // [0.5,0.6,0.7,0.85,1]
+  const lfNum = parseFloat(lf);
+  for (let i = lfs.length - 1; i >= 0; i--) {
+    if (lfNum >= lfs[i]) {
+      const key = lfKeyF2(lfs[i]); // 1 -> "1.0", 0.5 -> "0.5"
+      return lfData[key];
+    }
+  }
   return null;
-} 
+}
+
+  // --- DUPLIKÁLT f2 kulcsok összeolvasztása ---
+// Ha ugyanaz a top-level kulcs (pl. "triangle7") kétszer is szerepel az objektumban,
+// a második felülírja az elsőt. Ezért egyesítjük őket, ha "második" verziót is találnánk.
+["triangle7","triangle25","flat7","3core"].forEach(k => {
+  const extra = f2Data[k + "b"];
+  if (extra) {
+    f2Data[k] = { ...(f2Data[k] || {}), ...extra };
+    delete f2Data[k + "b"];
+  }
+});
+
+
 
 document.getElementById('calc').onclick=()=>{
   const base=Number(document.getElementById('base').value);
