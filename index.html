@@ -107,8 +107,20 @@
           </select>
         </div>
       </div>
-<!-- ÚJ: védőcső opció -->
-<!-- Védőcső + Terhelési tényező egy sorban -->
+<!-- Terhelési tényező (még a 3. f2 rész része) -->
+<div class="row">
+  <div>
+    <label for="lf2">Terhelési tényező</label>
+    <select id="lf2" title="Terhelési tényező az f2 számításhoz">
+      <option>0.50</option><option>0.60</option><option>0.70</option><option>0.85</option><option>1.00</option>
+    </select>
+  </div>
+</div>
+
+<hr />
+
+<!-- 4. pont: Védőcső -->
+<div class="pill">4. Védőcső</div>
 <div class="row">
   <div>
     <label for="duct">Védőcső használata</label>
@@ -117,18 +129,13 @@
       <option value="yes">Igen (0,85×)</option>
     </select>
   </div>
-  <div>
-    <label for="lf2">Terhelési tényező</label>
-    <select id="lf2">
-      <option>0.50</option><option>0.60</option><option>0.70</option><option>0.85</option><option>1.00</option>
-    </select>
-  </div>
 </div>
 
-<!-- Gomb külön blokkban, jobbra igazítva -->
-<div style="display:flex;justify-content:center;margin-top:12px">
+<!-- Számítás gomb: külön blokkban, középen, kis térközzel -->
+<div class="actions">
   <button class="btn" id="calc">Számítás</button>
 </div>
+
 
 
       <div class="note">Megjegyzés: f1-hez a 12.a / 12.b táblák, f2-höz a 13.a–16.b táblázatok adatait használjuk.</div>
