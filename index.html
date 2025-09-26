@@ -1095,12 +1095,23 @@ const f2Data = {
 
   //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+
 // Segédfüggvény a legközelebbi kulcs kereséséhez (szám vagy "any")
+// VISSZAADJA AZ EREDETI KULCSOT (pl. "1.0"), nem pedig "1"-et.
 function findClosestKey(keys, value) {
-  keys=keys.map(k => (k==='any'?Infinity:parseFloat(k))).sort((a,b)=>a-b);
-  for(let k of keys) if(value<=k) return k===Infinity?'any':k.toString();
-  return keys.length?(keys[keys.length-1]===Infinity?'any':keys[keys.length-1].toString()):null;
+  const rows = keys
+    .map(k => ({ orig: k, val: (k === 'any' ? Infinity : parseFloat(k)) }))
+    .sort((a, b) => a.val - b.val);
+
+  const numVal = (typeof value === 'number') ? value : parseFloat(value);
+  if (!rows.length || Number.isNaN(numVal)) return null;
+
+  for (const row of rows) {
+    if (numVal <= row.val) return row.orig;  // EREDETI string kulcsot ad vissza (pl. "1.0")
+  }
+  return rows[rows.length - 1].orig;         // utolsó (pl. "any" vagy a legnagyobb szám)
 }
+
 // Egyszerű elérés a nested objektumban
 function getNested(obj, keys) {
   return keys.reduce((o,k) => o && k in o ? o[k] : null, obj);
