@@ -108,6 +108,7 @@
         </div>
       </div>
 <!-- ÚJ: védőcső opció -->
+<!-- Védőcső + Terhelési tényező egy sorban -->
 <div class="row">
   <div>
     <label for="duct">Védőcső használata</label>
@@ -116,19 +117,19 @@
       <option value="yes">Igen (0,85×)</option>
     </select>
   </div>
+  <div>
+    <label for="lf2">Terhelési tényező</label>
+    <select id="lf2">
+      <option>0.50</option><option>0.60</option><option>0.70</option><option>0.85</option><option>1.00</option>
+    </select>
+  </div>
 </div>
-      
-      <div class="row">
-        <div>
-          <label for="lf2">Terhelési tényező</label>
-          <select id="lf2" title="Terhelési tényező az f2 számításhoz">
-            <option>0.50</option><option>0.60</option><option>0.70</option><option>0.85</option><option>1.00</option>
-          </select>
-        </div>
-        <div style="display:flex;align-items:end;justify-content:end">
-          <button class="btn" id="calc">Számítás</button>
-        </div>
-      </div>
+
+<!-- Gomb külön blokkban, jobbra igazítva -->
+<div class="actions">
+  <button class="btn" id="calc">Számítás</button>
+</div>
+
       <div class="note">Megjegyzés: f1-hez a 12.a / 12.b táblák, f2-höz a 13.a–16.b táblázatok adatait használjuk.</div>
     </section>
     <section class="card">
