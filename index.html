@@ -1,141 +1,241 @@
 <!doctype html>
-<html lang="hu">
+<html lang="hu" data-theme="auto">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>MSZ 13207:2020 – Valódi terhelhetőség (A = Alap × f1 × f2)</title>
+<title>Földkábel terhelhetőség — MSZ 13207:2020</title>
 <style>
-  :root{--bg:#0b1220;--card:#101a2c;--text:#e6edff;--muted:#9fb0c7;--line:#243552}
+  /* Alap témaváltozók (dark) */
+  :root{
+    --bg: #0b1220;
+    --surface: #0f1726;
+    --surface-2:#111a2c;
+    --text: #e6edff;
+    --muted:#9fb0c7;
+    --line:#243552;
+    --accent:#7aa2ff;
+    --focus:#99b4ff55;
+  }
+  /* Light téma */
+  [data-theme="light"]{
+    --bg:#f7f9ff;
+    --surface:#ffffff;
+    --surface-2:#f3f6ff;
+    --text:#0f1726;
+    --muted:#5c6b81;
+    --line:#d9e1f2;
+    --accent:#3a63f1;
+    --focus:#3a63f122;
+  }
+  /* Automatikus téma a rendszerből, ha explicit nem választottak */
+  @media (prefers-color-scheme: light){
+    [data-theme="auto"]{
+      --bg:#f7f9ff; --surface:#ffffff; --surface-2:#f3f6ff;
+      --text:#0f1726; --muted:#5c6b81; --line:#d9e1f2; --accent:#3a63f1; --focus:#3a63f122;
+    }
+  }
+
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--text);font:16px/1.45 system-ui,Segoe UI,Roboto,Arial}
-  .wrap{max-width:1120px;margin:32px auto;padding:0 16px}
-  h1{font-size:22px;margin:0 0 12px}
-  .sub{color:var(--muted);font-size:13px;margin-bottom:18px}
+  html,body{height:100%}
+  body{
+    margin:0;background:var(--bg);color:var(--text);
+    font:16px/1.5 system-ui,Segoe UI,Roboto,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+  }
+  .wrap{max-width:1040px;margin:32px auto;padding:0 16px}
+
+  /* Fejléc, téma-kapcsoló */
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+  .title{font-size:20px;font-weight:700;margin:0}
+  .sub{color:var(--muted);font-size:13px;margin-top:4px}
+  .toggle{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface-2);
+    font-size:13px;color:var(--muted);cursor:pointer; user-select:none;
+  }
+  .toggle input{appearance:none;width:36px;height:20px;border-radius:999px;background:var(--line);position:relative;outline:none;cursor:pointer}
+  .toggle input:focus-visible{box-shadow:0 0 0 6px var(--focus)}
+  .toggle input::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--surface);transition:transform .2s ease}
+  .toggle input:checked{background:var(--accent)}
+  .toggle input:checked::after{transform:translateX(16px)}
+
+  /* Kártyák, rács */
   .grid{display:grid;gap:16px}
-  @media(min-width:980px){.grid{grid-template-columns:1.2fr 1fr}}
-  .card{background:linear-gradient(180deg,var(--card),#0e1626 45%);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 8px 40px rgba(0,0,0,.25)}
+  @media(min-width:960px){.grid{grid-template-columns:1.2fr 1fr}}
+  .card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:16px;
+  }
+
+  /* Form elemek */
+  .section-label{display:inline-block;margin-bottom:10px;padding:4px 10px;font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;background:var(--surface-2)}
   .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:520px){.row{grid-template-columns:1fr}}
   label{font-size:12px;color:var(--muted);display:block;margin:6px 0}
-  input,select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#0a1424;color:var(--text)}
-  .pill{display:inline-block;background:#0a1c33;border:1px solid var(--line);border-radius:999px;padding:6px 10px;margin-right:8px;color:var(--muted);font-size:12px}
+  input,select{
+    width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);
+    background:var(--surface-2);color:var(--text);
+  }
+  input:focus,select:focus{outline:none;box-shadow:0 0 0 6px var(--focus)}
+  .btn{
+    padding:10px 14px;border-radius:12px;border:1px solid var(--line);
+    background:var(--surface-2);color:var(--text);cursor:pointer
+  }
+  .btn:hover{filter:brightness(1.05)}
+  .btn:focus-visible{outline:none;box-shadow:0 0 0 6px var(--focus)}
+  hr{border:0;border-top:1px dashed var(--line);margin:14px 0}
+
   .muted{color:var(--muted);font-size:12px}
   .mono{font-family:ui-monospace,SFMono-Regular,Consolas,Menlo,monospace}
-  .big{font-size:32px;font-weight:800;letter-spacing:.2px}
-  .btn{padding:10px 14px;border-radius:12px;border:1px solid var(--line);background:#0c1c33;color:#dbe6ff;cursor:pointer}
-  hr{border:0;border-top:1px dashed var(--line);margin:14px 0}
-  details{margin-top:8px} summary{color:var(--muted);font-size:12px;cursor:pointer}
-  code{background:#0c1830;padding:2px 6px;border-radius:6px;border:1px solid #1e2b47}
-  .note{font-size:11px;color:#789; margin-top:12px;}
+  .big{font-size:28px;font-weight:800;letter-spacing:.2px}
+  details summary{cursor:pointer;color:var(--muted);font-size:12px}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <h1>Földkábel terhelhetőség</h1>
-  <div class="sub">A = <strong>Alapterhelhetőség</strong> × <strong>f1</strong> × <strong>f2</strong> </div>
-  <div class="grid">
-    <section class="card">
-      <div class="pill">1. Alap</div>
-      <label for="base">Alapterhelhetőség (A)</label>
-      <input id="base" type="number" min="0" step="0.1" placeholder="pl. 250" />
-      <hr />
-      <div class="pill">2. f1 </div>
-      <div class="row">
-        <div>
-          <label for="f1type">Kábel típusa</label>
-          <select id="f1type" title="Kábel típusa felhasználása az f1 táblázatban">
-            <option value="XLPE90">90 °C – XLPE-szigetelésű</option>
-            <option value="PVC70">70 °C – PVC-szigetelésű</option>
-            <option value="PE70">70 °C – PE-szigetelésű</option>
-            <option value="PAPER65">65 °C – Telített papírszigetelésű (6/10–12/20 kV)</option>
-            <option value="PAPER60">60 °C – Telített papírszigetelésű (18/30–20,8/36 kV)</option>
-          </select>
-        </div>
-        <div>
-          <label for="soilT">Talaj hőmérséklete (°C)</label>
-          <select id="soilT" title="Talaj hőmérséklete">
-            <option>5</option><option>10</option><option>15</option><option>20</option><option>25</option>
-          </select>
-        </div>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1 class="title">Földkábel terhelhetőség</h1>
+        <div class="sub">A = <strong>Alapterhelhetőség</strong> × <strong>f1</strong> × <strong>f2</strong></div>
       </div>
-      <div class="row">
-        <div>
-          <label for="rho">Talaj fajlagos hőellenállása (K·m/W)</label>
-          <select id="rho" title="Talaj fajlagos hőellenállása">
-            <option>0.7</option><option>1.0</option><option>1.5</option><option>2.5</option>
-          </select>
+      <label class="toggle" title="Téma váltása">
+        <span>🌙</span>
+        <input id="themeToggle" type="checkbox" aria-label="Dark / Light mód váltása">
+        <span>☀️</span>
+      </label>
+    </header>
+
+    <div class="grid">
+      <section class="card">
+        <div class="section-label">1. Alap</div>
+        <label for="base">Alapterhelhetőség (A)</label>
+        <input id="base" type="number" min="0" step="0.1" placeholder="pl. 250" />
+        <hr />
+
+        <div class="section-label">2. f1</div>
+        <div class="row">
+          <div>
+            <label for="f1type">Kábel típusa</label>
+            <select id="f1type" title="Kábel típusa felhasználása az f1 táblázatban">
+              <option value="XLPE90">90 °C – XLPE-szigetelésű</option>
+              <option value="PVC70">70 °C – PVC-szigetelésű</option>
+              <option value="PE70">70 °C – PE-szigetelésű</option>
+              <option value="PAPER65">65 °C – Telített papírszigetelésű (6/10–12/20 kV)</option>
+              <option value="PAPER60">60 °C – Telített papírszigetelésű (18/30–20,8/36 kV)</option>
+            </select>
+          </div>
+          <div>
+            <label for="soilT">Talaj hőmérséklete (°C)</label>
+            <select id="soilT" title="Talaj hőmérséklete">
+              <option>5</option><option>10</option><option>15</option><option>20</option><option>25</option>
+            </select>
+          </div>
         </div>
-        <div>
-          <label for="lf">Terhelési tényező</label>
-          <select id="lf" title="Terhelési tényező">
-            <option>0.50</option><option>0.60</option><option>0.70</option><option>0.85</option><option>1.00</option>
-          </select>
+        <div class="row">
+          <div>
+            <label for="rho">Talaj fajlagos hőellenállása (K·m/W)</label>
+            <select id="rho" title="Talaj fajlagos hőellenállása">
+              <option>0.7</option><option>1.0</option><option>1.5</option><option>2.5</option>
+            </select>
+          </div>
+          <div>
+            <label for="lf">Terhelési tényező</label>
+            <select id="lf" title="Terhelési tényező">
+              <option>0.50</option><option>0.60</option><option>0.70</option><option>0.85</option><option>1.00</option>
+            </select>
+          </div>
         </div>
-      </div>
-      <hr />
-      <div class="pill">3. f2 </div>
-      <div class="row">
-        <div>
-          <label for="arr">Kábel elrendezés</label>
-          <select id="arr" title="Kábel elrendezés az f2 táblázatok szerint">
-            <option value="triangle7">Háromszögben, 7 cm</option>
-            <option value="triangle25">Háromszögben, 25 cm</option>
-            <option value="flat7">Síkban, 7 cm</option>
-            <option value="3core">Háromerű kábel, síkban, 7 cm</option>
-          </select>
+
+        <hr />
+        <div class="section-label">3. f2</div>
+        <div class="row">
+          <div>
+            <label for="arr">Kábel elrendezés</label>
+            <select id="arr" title="Kábel elrendezés az f2 táblázatok szerint">
+              <option value="triangle7">Háromszögben, 7 cm</option>
+              <option value="triangle25">Háromszögben, 25 cm</option>
+              <option value="flat7">Síkban, 7 cm</option>
+              <option value="3core">Háromerű kábel, síkban, 7 cm</option>
+            </select>
+          </div>
+          <div>
+            <label for="f2type">Kábel típusa</label>
+            <select id="f2type" title="Kábel típusa az f2 táblázatok szerint">
+              <option value="XLPE">XLPE-szigetelésű</option>
+              <option value="PE">PE-szigetelésű</option>
+              <option value="PVC">PVC-szigetelésű</option>
+              <option value="Paper">Telített papírszigetelésű</option>
+            </select>
+          </div>
         </div>
-        <div>
-          <label for="f2type">Kábel típusa</label>
-          <select id="f2type" title="Kábel típusa az f2 táblázatok szerint">
-            <option value="XLPE">XLPE-szigetelésű</option>
-            <option value="PE">PE-szigetelésű</option>
-            <option value="PVC">PVC-szigetelésű</option>
-           <option value="Paper">Telített papírszigetelésű</option>
-          </select>
+        <div class="row">
+          <div>
+            <label for="systems">Kábelrendszerek száma</label>
+            <select id="systems" title="Kábelrendszerek száma">
+              <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>8</option><option>10</option>
+            </select>
+          </div>
+          <div>
+            <label for="rho2">Talaj fajlagos hőellenállása (K·m/W)</label>
+            <select id="rho2" title="Talaj fajlagos hőellenállása az f2 számításhoz">
+              <option>0.7</option><option>1.0</option><option>1.5</option><option>2.5</option>
+            </select>
+          </div>
         </div>
-      </div>
-      <div class="row">
-        <div>
-          <label for="systems">Kábelrendszerek száma</label>
-          <select id="systems" title="Kábelrendszerek száma">
-            <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>8</option><option>10</option>
-          </select>
+        <div class="row">
+          <div>
+            <label for="lf2">Terhelési tényező</label>
+            <select id="lf2" title="Terhelési tényező az f2 számításhoz">
+              <option>0.50</option><option>0.60</option><option>0.70</option><option>0.85</option><option>1.00</option>
+            </select>
+          </div>
+          <div style="display:flex;align-items:end;justify-content:end">
+            <button class="btn" id="calc">Számítás</button>
+          </div>
         </div>
-        <div>
-          <label for="rho2">Talaj fajlagos hőellenállása (K·m/W)</label>
-          <select id="rho2" title="Talaj fajlagos hőellenállása az f2 számításhoz">
-            <option>0.7</option><option>1.0</option><option>1.5</option><option>2.5</option>
-          </select>
+      </section>
+
+      <section class="card">
+        <div class="section-label">Számítás eredménye</div>
+        <div style="display:grid; gap:8px; margin-top:8px;">
+          <div><span class="muted">f1 érték</span><div class="mono" id="f1v">–</div></div>
+          <div><span class="muted">f2 érték</span><div class="mono" id="f2v">–</div></div>
+          <div><span class="muted">Végső terhelhetőség (A)</span><div class="big" id="total">—</div></div>
         </div>
-      </div>
-      <div class="row">
-        <div>
-          <label for="lf2">Terhelési tényező</label>
-          <select id="lf2" title="Terhelési tényező az f2 számításhoz">
-            <option>0.50</option><option>0.60</option><option>0.70</option><option>0.85</option><option>1.00</option>
-          </select>
-        </div>
-        <div style="display:flex;align-items:end;justify-content:end">
-          <button class="btn" id="calc">Számítás</button>
-        </div>
-      </div>
-      <div class="note">Megjegyzés: f1-hez a 12.a / 12.b táblák, f2-höz a 13.a–16.b táblázatok adatait használjuk.</div>
-    </section>
-    <section class="card">
-      <div class="pill">Számítás eredménye</div>
-      <div style="display:grid; gap:8px; margin-top:8px;">
-        <div><span class="muted">f1 érték</span><div class="mono" id="f1v">–</div></div>
-        <div><span class="muted">f2 érték</span><div class="mono" id="f2v">–</div></div>
-        <div><span class="muted">Végső terhelhetőség (A)</span><div class="big" id="total">—</div></div>
-      </div>
-      <hr />
-      <details>
-        <summary>Források</summary>
-        <p class="muted">f1 adatok: 12.a (XLPE 90 °C), 12.b (PVC, PE 70 °C; Telített papír 65 °C & 60 °C).</p>
-        <p class="muted">f2 adatok: 13.a–13.b (háromszög, 7 cm), 14.a–14.b (háromszög, 25 cm), 15.a–15.b (sík, 7 cm), 16.a–16.b (háromerű, sík, 7 cm).</p>
-      </details>
-    </section>
+        <hr />
+        <details>
+          <summary>Források</summary>
+          <p class="muted">f1: 12.a (XLPE 90 °C), 12.b (PVC/PE 70 °C; Papír 65/60 °C)</p>
+          <p class="muted">f2: 13.a–16.b (háromszög 7/25 cm; sík 7 cm; háromerű sík 7 cm)</p>
+        </details>
+      </section>
+    </div>
   </div>
-</div>
+
+<script>
+  // --- Téma kezelés ---
+  (function(){
+    const root = document.documentElement;
+    const key = "theme";
+    const saved = localStorage.getItem(key); // "light" | "dark" | null
+    if (saved === "light" || saved === "dark") root.setAttribute("data-theme", saved);
+    const toggle = document.getElementById("themeToggle");
+    // állapot beállítás
+    const current = root.getAttribute("data-theme");
+    toggle.checked = current === "light";
+    // váltás
+    toggle.addEventListener("change", () => {
+      const next = toggle.checked ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      localStorage.setItem(key, next);
+    });
+  })();
+</script>
+</body>
+</html>
+
 
 <script>
 // 12.a és 12.b teljes f1 adat
