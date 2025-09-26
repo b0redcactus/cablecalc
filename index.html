@@ -30,15 +30,15 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>Valódi terhelhetőség – MSZ 13207:2020</h1>
-  <div class="sub">A = <strong>Alapterhelhetőség</strong> × <strong>f1</strong> × <strong>f2</strong>. Az értékek a csatolt MSZ 13207:2020 táblázataiból származnak.</div>
+  <h1>Földkábel terhelhetőség</h1>
+  <div class="sub">A = <strong>Alapterhelhetőség</strong> × <strong>f1</strong> × <strong>f2</strong> </div>
   <div class="grid">
     <section class="card">
       <div class="pill">1. Alap</div>
       <label for="base">Alapterhelhetőség (A)</label>
       <input id="base" type="number" min="0" step="0.1" placeholder="pl. 250" />
       <hr />
-      <div class="pill">2. f1 (12.a–12.b táblázatok alapján)</div>
+      <div class="pill">2. f1 </div>
       <div class="row">
         <div>
           <label for="f1type">Kábel típusa</label>
@@ -53,7 +53,7 @@
         <div>
           <label for="soilT">Talaj hőmérséklete (°C)</label>
           <select id="soilT" title="Talaj hőmérséklete">
-            <option>5</option><option>10</option><option>15</option><option>20</option><option>25</option><option>30</option><option>35</option><option>40</option>
+            <option>5</option><option>10</option><option>15</option><option>20</option><option>25</option>
           </select>
         </div>
       </div>
@@ -72,7 +72,7 @@
         </div>
       </div>
       <hr />
-      <div class="pill">3. f2 – kábel elrendezés és paraméterek (13–16. táblázatok)</div>
+      <div class="pill">3. f2 </div>
       <div class="row">
         <div>
           <label for="arr">Kábel elrendezés</label>
@@ -129,7 +129,7 @@
       </div>
       <hr />
       <details>
-        <summary>Források - MSZ 13207:2020</summary>
+        <summary>Források</summary>
         <p class="muted">f1 adatok: 12.a (XLPE 90 °C), 12.b (PVC, PE 70 °C; Telített papír 65 °C & 60 °C).</p>
         <p class="muted">f2 adatok: 13.a–13.b (háromszög, 7 cm), 14.a–14.b (háromszög, 25 cm), 15.a–15.b (sík, 7 cm), 16.a–16.b (háromerű, sík, 7 cm).</p>
       </details>
