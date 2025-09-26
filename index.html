@@ -80,7 +80,7 @@
             <option value="triangle7">Háromszögben, 7 cm</option>
             <option value="triangle25">Háromszögben, 25 cm</option>
             <option value="flat7">Síkban, 7 cm</option>
-            <option value="threeCoreFlat7">Háromerű kábel, síkban, 7 cm</option>
+            <option value="3core">Háromerű kábel, síkban, 7 cm</option>
           </select>
         </div>
         <div>
@@ -89,7 +89,7 @@
             <option value="XLPE">XLPE-szigetelésű</option>
             <option value="PE">PE-szigetelésű</option>
             <option value="PVC">PVC-szigetelésű</option>
-            <option value="PAPER">Telített papírszigetelésű</option>
+           <option value="Paper">Telített papírszigetelésű</option>
           </select>
         </div>
       </div>
@@ -1124,7 +1124,39 @@ function getF1Value(type, soilT, rho, lf) {
 }
 
 // f2 lekérdezés az összes táblázatból
+
+
+  // f2 lekérdezés az összes táblázatból (aliasokkal)
 function getF2Value(arr, type, systems, rho, lf) {
+  // UI -> adatkulcs illesztés
+  const arrAlias  = { threeCoreFlat7: '3core' };
+  const typeAlias = { PAPER: 'Paper' };
+
+  const table    = f2Data[arrAlias[arr]  || arr];
+  if (!table) return null;
+
+  const typeData = table[typeAlias[type] || type];
+  if (!typeData) return null;
+
+  const sysKey = findClosestKey(Object.keys(typeData), systems);
+  if (!sysKey) return null;
+
+  const rhoData = typeData[sysKey];
+  const rKey    = findClosestKey(Object.keys(rhoData), rho);
+  if (!rKey) return null;
+
+  const lfData  = rhoData[rKey];
+
+  // pontos egyezés vagy lefelé kerekített legközelebbi
+  if (lf in lfData) return lfData[lf];
+  let lfs = Object.keys(lfData).map(parseFloat).sort((a,b)=>a-b);
+  for (let i = lfs.length - 1; i >= 0; i--) if (lf >= lfs[i]) return lfData[lfs[i]];
+  return null;
+}
+
+
+  
+/*function getF2Value(arr, type, systems, rho, lf) {
   const table=f2Data[arr];
   if(!table) return null;
   const typeData=table[type];
@@ -1139,7 +1171,7 @@ function getF2Value(arr, type, systems, rho, lf) {
   let lfs=Object.keys(lfData).map(parseFloat).sort((a,b)=>a-b);
   for(let i=lfs.length-1;i>=0;i--) if(lf>=lfs[i]) return lfData[lfs[i]];
   return null;
-}
+} */
 
 document.getElementById('calc').onclick=()=>{
   const base=Number(document.getElementById('base').value);
