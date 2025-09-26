@@ -107,6 +107,17 @@
           </select>
         </div>
       </div>
+<!-- ÚJ: védőcső opció -->
+<div class="row">
+  <div>
+    <label for="duct">Védőcső használata</label>
+    <select id="duct" title="Ha van védőcső: 0,85-ös szorzó">
+      <option value="no">Nem</option>
+      <option value="yes">Igen (0,85×)</option>
+    </select>
+  </div>
+</div>
+      
       <div class="row">
         <div>
           <label for="lf2">Terhelési tényező</label>
@@ -1254,6 +1265,8 @@ document.getElementById('calc').onclick=()=>{
   const systems=Number(document.getElementById('systems').value);
   const rho2=document.getElementById('rho2').value;
   const lf2=document.getElementById('lf2').value;
+  const duct = document.getElementById('duct').value === 'yes';
+
 
   const fv1=getF1Value(f1type, soilT, rho, lf);
   const fv2=getF2Value(arr, f2type, systems, rho2, lf2);
@@ -1261,11 +1274,15 @@ document.getElementById('calc').onclick=()=>{
   document.getElementById('f1v').textContent=fv1===null?"Nincs adat":fv1.toFixed(3);
   document.getElementById('f2v').textContent=fv2===null?"Nincs adat":fv2.toFixed(3);
 
-  if(fv1!==null&&fv2!==null) {
-    document.getElementById('total').textContent=(base*fv1*fv2).toFixed(1)+" A";
-  } else {
-    document.getElementById('total').textContent="Nem számolható az adott adatokkal";
-  }
+const ductFactor = duct ? 0.85 : 1;
+
+if (fv1 !== null && fv2 !== null) {
+  document.getElementById('total').textContent =
+    (base * fv1 * fv2 * ductFactor).toFixed(1) + " A";
+} else {
+  document.getElementById('total').textContent = "Nem számolható az adott adatokkal";
+}
+
 };
 </script>
 </body>
