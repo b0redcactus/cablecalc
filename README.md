@@ -34,9 +34,9 @@
 
     git clone <REPO_URL>
     cd <REPO_MAPPÁJA>
-    # dupla katt az index.html-re, vagy:
-    # python -m http.server 5500
-    # és nyisd meg: http://localhost:5500
+    dupla katt az index.html-re, vagy:
+    python -m http.server 5500
+    és nyisd meg: http://localhost:5500
 
 Nem szükséges build vagy szerver; egy sima fájlmegnyitás is elegendő.
 
