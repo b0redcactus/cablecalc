@@ -1,6 +1,6 @@
 # cablecalc – Földkábel terhelhetőség
 
-Egyszerű, offline kalkulátor az **MSZ 13207:2020** táblák alapján.  
+Egyszerű, offline földkábel terhelhetőség kalkulátor.
 Végső áramterhelhetőség: **A = Alap × f1 × f2 × (védőcső esetén 0,85)**
 
 ---
