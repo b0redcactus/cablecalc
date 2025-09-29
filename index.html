@@ -132,8 +132,9 @@
 </div>
 
 <!-- Számítás gomb: külön blokkban, középen, kis térközzel -->
-<div style="display:flex; justify-content:center; margin-top:12px;">
+<div style="display:flex;justify-content:center;gap:8px;margin-top:16px">
   <button class="btn" id="calc">Számítás</button>
+  <button class="btn" id="exportXlsx">XLSX import</button>
 </div>
 
 
@@ -158,6 +159,7 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 
 <script>
@@ -1276,6 +1278,98 @@ document.getElementById('calc').onclick=()=>{
   const rho2=document.getElementById('rho2').value;
   const lf2=document.getElementById('lf2').value;
   const duct = document.getElementById('duct').value === 'yes';
+
+  // XLSX export – "XLSX import" gomb
+document.getElementById('exportXlsx').onclick = () => {
+  // 1) Bemenetek beolvasása (aktuális értékek a formból)
+  const baseEl   = document.getElementById('base');
+  const f1typeEl = document.getElementById('f1type');
+  const soilTEl  = document.getElementById('soilT');
+  const rhoEl    = document.getElementById('rho');
+  const lfEl     = document.getElementById('lf');
+
+  const arrEl     = document.getElementById('arr');
+  const f2typeEl  = document.getElementById('f2type');
+  const systemsEl = document.getElementById('systems');
+  const rho2El    = document.getElementById('rho2');
+  const lf2El     = document.getElementById('lf2');
+  const ductEl    = document.getElementById('duct'); // védőcső
+
+  const base    = parseFloat(baseEl.value);
+  const f1type  = f1typeEl.value;
+  const soilT   = parseFloat(soilTEl.value);
+  const rho     = rhoEl.value;     // string (pl. "1.0")
+  const lf      = lfEl.value;      // string (pl. "0.85")
+
+  const arr     = arrEl.value;
+  const f2type  = f2typeEl.value;
+  const systems = parseFloat(systemsEl.value);
+  const rho2    = rho2El.value;
+  const lf2     = lf2El.value;
+  const duct    = ductEl.value;    // "yes" | "no"
+
+  // Címkék (szebb Excelhez)
+  const f1typeLabel = f1typeEl.selectedOptions[0].text;
+  const arrLabel    = arrEl.selectedOptions[0].text;
+  const f2typeLabel = f2typeEl.selectedOptions[0].text;
+  const ductLabel   = duct === 'yes' ? 'Igen (0,85×)' : 'Nem';
+
+  // 2) Értékek újraszámolása (független attól, hogy megnyomták-e a Számítás gombot)
+  const fv1 = getF1Value(f1type, soilT, rho, lf);
+  const fv2 = getF2Value(arr, f2type, systems, rho2, lf2);
+
+  if (isNaN(base) || base <= 0) {
+    alert('Adj meg érvényes alapterhelhetőséget (A)!');
+    return;
+  }
+  if (fv1 === null || fv2 === null) {
+    alert('Ezekkel az adatokkal nem számolható. Kérlek ellenőrizd a kiválasztott értékeket!');
+    return;
+  }
+
+  const ductFactor = (duct === 'yes') ? 0.85 : 1.0;
+  const totalA = base * fv1 * fv2 * ductFactor;
+
+  // 3) Excel tartalom (AOA = Array of Arrays)
+  const rows = [
+    ['Projekt címe', ''],         // üresen hagyva
+    ['Kábel fajtája', ''],        // üresen hagyva
+    ['',''],
+    ['Alapadatok', ''],
+    ['Alapterhelhetőség (A)', base],
+    ['Kábel típusa (f1)', f1typeLabel + ` [${f1type}]`],
+    ['Talaj hőmérséklete (°C)', soilT],
+    ['Talaj fajlagos hőellenállása – f1 (K·m/W)', rho],
+    ['Terhelési tényező – f1', lf],
+    ['',''],
+    ['Elrendezés (f2)', arrLabel + ` [${arr}]`],
+    ['Kábel típusa (f2)', f2typeLabel + ` [${f2type}]`],
+    ['Kábelrendszerek száma', systems],
+    ['Talaj fajlagos hőellenállása – f2 (K·m/W)', rho2],
+    ['Terhelési tényező – f2', lf2],
+    ['Védőcső használata', ductLabel],
+    ['',''],
+    ['f1 érték', Number(fv1).toFixed(3)],
+    ['f2 érték', Number(fv2).toFixed(3)],
+    ['Összes szorzó (védőcsővel)', (fv1 * fv2 * ductFactor).toFixed(3)],
+    ['Végső terhelhetőség (A)', totalA.toFixed(1)],
+    ['',''],
+    ['Szabvány', 'MSZ 13207:2020'],
+    ['Export dátum/idő', new Date().toLocaleString()]
+  ];
+
+  // 4) Munkafüzet készítés és letöltés
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+
+  // Kicsit szélesebb oszlopok
+  ws['!cols'] = [{ wch: 34 }, { wch: 28 }];
+
+  XLSX.utils.book_append_sheet(wb, ws, 'Számítás');
+  const filename = `kabel_terheles_${Date.now()}.xlsx`;
+  XLSX.writeFile(wb, filename);
+};
+
 
 
   const fv1=getF1Value(f1type, soilT, rho, lf);
