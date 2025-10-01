@@ -5,44 +5,300 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Kábel terhelhetőség</title>
 <style>
-  :root{--bg:#0b1220;--card:#101a2c;--text:#e6edff;--muted:#9fb0c7;--line:#243552}
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--text);font:16px/1.45 system-ui,Segoe UI,Roboto,Arial}
-  .wrap{max-width:1120px;margin:32px auto;padding:0 16px}
-  h1{font-size:22px;margin:0 0 12px}
-  .sub{color:var(--muted);font-size:13px;margin-bottom:18px}
-  .grid{display:grid;gap:16px}
-  @media(min-width:980px){.grid{grid-template-columns:1.2fr 1fr}}
-  .card{background:linear-gradient(180deg,var(--card),#0e1626 45%);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 8px 40px rgba(0,0,0,.25)}
-  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  label{font-size:12px;color:var(--muted);display:block;margin:6px 0}
-  input,select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#0a1424;color:var(--text)}
-  .pill{display:inline-block;background:#0a1c33;border:1px solid var(--line);border-radius:999px;padding:6px 10px;margin-right:8px;color:var(--muted);font-size:12px}
-  .muted{color:var(--muted);font-size:12px}
-  .mono{font-family:ui-monospace,SFMono-Regular,Consolas,Menlo,monospace}
-  .big{font-size:32px;font-weight:800;letter-spacing:.2px}
-  .btn{padding:10px 14px;border-radius:12px;border:1px solid var(--line);background:#0c1c33;color:#dbe6ff;cursor:pointer}
-  hr{border:0;border-top:1px dashed var(--line);margin:14px 0}
-  details{margin-top:8px} summary{color:var(--muted);font-size:12px;cursor:pointer}
-  code{background:#0c1830;padding:2px 6px;border-radius:6px;border:1px solid #1e2b47}
-  .note{font-size:11px;color:#789; margin-top:12px;}
-  /* --- Rendszer adatai státuszszínek --- */
-.ok  { color:#4ade80; }  /* zöld */
-.bad { color:#f87171; }  /* piros */
-
+  :root{
+    --bg: #16161a;
+    --surface: #1c1c21;
+    --surface-hover: #202026;
+    --border: #2a2a30;
+    --text: #e4e4e7;
+    --text-secondary: #a1a1aa;
+    --accent: #8b5cf6;
+    --accent-hover: #7c3aed;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --error: #ef4444;
+  }
+  
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  
+  .wrap {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 48px 24px;
+  }
+  
+  h1 {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--text);
+    letter-spacing: -0.3px;
+  }
+  
+  .sub {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-bottom: 32px;
+  }
+  
+  .sub strong {
+    color: var(--text);
+    font-weight: 500;
+  }
+  
+  .grid {
+    display: grid;
+    gap: 16px;
+  }
+  
+  @media(min-width: 980px) {
+    .grid {
+      grid-template-columns: 1.4fr 1fr;
+    }
+  }
+  
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    transition: border-color 0.15s ease;
+  }
+  
+  .card:hover {
+    border-color: #333339;
+  }
+  
+  .row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+  }
+  
+  input, select {
+    width: 100%;
+    padding: 8px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: inherit;
+    transition: all 0.15s ease;
+  }
+  
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: var(--surface);
+  }
+  
+  input:hover, select:hover {
+    border-color: #333339;
+  }
+  
+  input::placeholder {
+    color: #52525b;
+  }
+  
+  .pill {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.9;
+  }
+  
+  .muted {
+    color: var(--text-secondary);
+    font-size: 13px;
+  }
+  
+  .mono {
+    font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+    font-size: 15px;
+    color: var(--text);
+    margin-top: 4px;
+  }
+  
+  .big {
+    font-size: 42px;
+    font-weight: 600;
+    letter-spacing: -1.5px;
+    color: var(--accent);
+    margin-top: 4px;
+  }
+  
+  .btn {
+    padding: 8px 16px;
+    background: var(--surface-hover);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  
+  .btn:hover {
+    background: #25252b;
+    border-color: #333339;
+  }
+  
+  .btn:active {
+    transform: scale(0.98);
+  }
+  
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 20px 0;
+  }
+  
+  details {
+    margin-top: 16px;
+    padding: 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+  }
+  
+  summary {
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+  }
+  
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  
+  summary:hover {
+    color: var(--text);
+  }
+  
+  details[open] summary {
+    margin-bottom: 12px;
+  }
+  
+  details p {
+    margin: 8px 0;
+    line-height: 1.6;
+  }
+  
+  code {
+    background: var(--bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'SF Mono', 'Consolas', monospace;
+    font-size: 12px;
+  }
+  
+  .note {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 16px;
+    padding: 12px;
+    background: var(--bg);
+    border-radius: 6px;
+    border-left: 2px solid var(--border);
+    line-height: 1.5;
+  }
+  
+  .ok {
+    color: var(--success);
+  }
+  
+  .bad {
+    color: var(--error);
+  }
+  
+  .result-grid {
+    display: grid;
+    gap: 12px;
+    margin-top: 16px;
+  }
+  
+  .result-item {
+    padding: 16px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    transition: border-color 0.15s ease;
+  }
+  
+  .result-item:hover {
+    border-color: #333339;
+  }
+  
+  #system-card {
+    background: var(--surface);
+  }
+  
+  .btn-group {
+    display: flex;
+    justify-content: flex-start;
+    gap: 8px;
+    margin-top: 20px;
+  }
+  
+  @media(max-width: 979px) {
+    .wrap {
+      padding: 32px 16px;
+    }
+    h1 {
+      font-size: 22px;
+    }
+    .big {
+      font-size: 36px;
+    }
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>Földkábel terhelhetőség/Cable current capacity</h1>
-  <div class="sub">A = <strong>Alapterhelhetőség/Base load</strong> × <strong>f1</strong> × <strong>f2</strong> </div>
+  <div class="sub">A = <strong>Alapterhelhetőség/Base load</strong> × <strong>f1</strong> × <strong>f2</strong></div>
+  
   <div class="grid">
     <section class="card">
       <div class="pill">1. Alap</div>
       <label for="base">Alapterhelhetőség/Base load (A)</label>
       <input id="base" type="number" min="0" step="0.1" placeholder="pl. 250" />
+      
       <hr />
-      <div class="pill">2. f1 </div>
+      
+      <div class="pill">2. f1</div>
       <div class="row">
         <div>
           <label for="f1type">Kábel típusa/Cable type</label>
@@ -61,6 +317,7 @@
           </select>
         </div>
       </div>
+      
       <div class="row">
         <div>
           <label for="rho">Talaj fajlagos hőellenállása/Soil thermal resistivity</label>
@@ -75,8 +332,10 @@
           </select>
         </div>
       </div>
+      
       <hr />
-      <div class="pill">3. f2 </div>
+      
+      <div class="pill">3. f2</div>
       <div class="row">
         <div>
           <label for="arr">Kábel elrendezés/Cable arrangement</label>
@@ -93,10 +352,11 @@
             <option value="XLPE">XLPE-szigetelésű</option>
             <option value="PE">PE-szigetelésű</option>
             <option value="PVC">PVC-szigetelésű</option>
-           <option value="Paper">Telített papírszigetelésű</option>
+            <option value="Paper">Telített papírszigetelésű</option>
           </select>
         </div>
       </div>
+      
       <div class="row">
         <div>
           <label for="systems">Kábelrendszerek száma/Cable systems</label>
@@ -111,90 +371,98 @@
           </select>
         </div>
       </div>
-<!-- Terhelési tényező (még a 3. f2 rész része) -->
-<div class="row">
-  <div>
-    <label for="lf2">Terhelési tényező/Load factor</label>
-    <select id="lf2" title="Terhelési tényező az f2 számításhoz">
-      <option>0.50</option><option>0.60</option><option>0.70</option><option>0.85</option><option>1.00</option>
-    </select>
-  </div>
-</div>
-
-<hr />
-
-<!-- 4. pont: Védőcső -->
-<div class="pill">4. Védőcső</div>
-<div class="row">
-  <div>
-    <label for="duct">Védőcső/Protective conduit</label>
-    <select id="duct" title="Ha van védőcső: 0,85-ös szorzó">
-      <option value="no">Nem</option>
-      <option value="yes">Igen (0,85×)</option>
-    </select>
-  </div>
-</div>
-
-<!-- Számítás gomb: külön blokkban, középen, kis térközzel -->
-<div style="display:flex;justify-content:center;gap:8px;margin-top:16px">
-  <button class="btn" id="calc">Számítás</button>
-  <button class="btn" id="exportXlsx">XLSX export</button>
-</div>
-
-
-
-
+      
+      <div class="row">
+        <div>
+          <label for="lf2">Terhelési tényező/Load factor</label>
+          <select id="lf2" title="Terhelési tényező az f2 számításhoz">
+            <option>0.50</option><option>0.60</option><option>0.70</option><option>0.85</option><option>1.00</option>
+          </select>
+        </div>
+      </div>
+      
+      <hr />
+      
+      <div class="pill">4. Védőcső</div>
+      <div class="row">
+        <div>
+          <label for="duct">Védőcső/Protective conduit</label>
+          <select id="duct" title="Ha van védőcső: 0,85-ös szorzó">
+            <option value="no">Nem</option>
+            <option value="yes">Igen (0,85×)</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="btn-group">
+        <button class="btn" id="calc">Számítás</button>
+        <button class="btn" id="exportXlsx">XLSX export</button>
+      </div>
+      
       <div class="note">Megjegyzés: f1-hez a 12.a / 12.b táblák, f2-höz a 13.a–16.b táblázatok adatait használjuk.</div>
     </section>
+    
     <section class="card">
-      <div class="pill">Számítás eredménye</div>
-      <div style="display:grid; gap:8px; margin-top:8px;">
-        <div><span class="muted">f1 érték</span><div class="mono" id="f1v">–</div></div>
-        <div><span class="muted">f2 érték</span><div class="mono" id="f2v">–</div></div>
-        <div><span class="muted">Végső terhelhetőség (A)</span><div class="big" id="total">—</div></div>
+      <div class="pill">Eredmény</div>
+      <div class="result-grid">
+        <div class="result-item">
+          <span class="muted">f1 érték</span>
+          <div class="mono" id="f1v">–</div>
+        </div>
+        <div class="result-item">
+          <span class="muted">f2 érték</span>
+          <div class="mono" id="f2v">–</div>
+        </div>
+        <div class="result-item">
+          <span class="muted">Végső terhelhetőség (A)</span>
+          <div class="big" id="total">—</div>
+        </div>
       </div>
+      
       <hr />
+      
       <details>
         <summary>Források</summary>
         <p class="muted">f1 adatok: 12.a (XLPE 90 °C), 12.b (PVC, PE 70 °C; Telített papír 65 °C & 60 °C).</p>
         <p class="muted">f2 adatok: 13.a–13.b (háromszög, 7 cm), 14.a–14.b (háromszög, 25 cm), 15.a–15.b (sík, 7 cm), 16.a–16.b (háromerű, sík, 7 cm).</p>
       </details>
     </section>
+    
     <section class="card" id="system-card">
-  <div class="pill">5. Rendszer adatai (opcionális)</div>
-
-  <div class="row">
-    <div>
-      <label for="sysU">Névleges feszültség/Nominal voltage</label>
-      <select id="sysU" title="Háromfázisú rendszer feszültsége (V)">
-        <option value="">– válassz –</option>
-        <option value="22000">22 kV</option>
-        <option value="11000">11 kV</option>
-        <option value="400">0,4 kV</option>
-      </select>
-    </div>
-    <div>
-      <label for="sysP">Teljesítmény/Power (kW)</label>
-      <input id="sysP" type="number" min="0" step="0.1" placeholder="pl. 500" />
-    </div>
-  </div>
-
-  <div class="muted" style="margin-top:8px">Háromfázisú képlet: <span class="mono">I = P / (√3 · U)</span></div>
-
-  <div class="row" style="margin-top:8px">
-    <div>
-      <span class="muted">Áram/Current</span>
-      <div class="mono" id="sysI">–</div>
-    </div>
-    <div>
-      <span class="muted">Megfelelés/Rating check</span>
-      <div class="mono" id="sysCheck">–</div>
-    </div>
-  </div>
-</section>
-
+      <div class="pill">5. Rendszer adatai (opcionális)</div>
+      
+      <div class="row">
+        <div>
+          <label for="sysU">Névleges feszültség/Nominal voltage</label>
+          <select id="sysU" title="Háromfázisú rendszer feszültsége (V)">
+            <option value="">– válassz –</option>
+            <option value="22000">22 kV</option>
+            <option value="11000">11 kV</option>
+            <option value="400">0,4 kV</option>
+          </select>
+        </div>
+        <div>
+          <label for="sysP">Teljesítmény/Power (kW)</label>
+          <input id="sysP" type="number" min="0" step="0.1" placeholder="pl. 500" />
+        </div>
+      </div>
+      
+      <div class="muted" style="margin-top: 12px">Háromfázisú képlet: <span class="mono">I = P / (√3 · U)</span></div>
+      
+      <div class="row" style="margin-top: 16px">
+        <div class="result-item">
+          <span class="muted">Áram/Current</span>
+          <div class="mono" id="sysI">–</div>
+        </div>
+        <div class="result-item">
+          <span class="muted">Megfelelés/Rating check</span>
+          <div class="mono" id="sysCheck">–</div>
+        </div>
+      </div>
+    </section>
   </div>
 </div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
