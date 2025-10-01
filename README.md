@@ -23,7 +23,7 @@ Végső áramterhelhetőség képlete: **A = Alap × f1 × f2 × (védőcső ese
 
 ## Funkciók
 
-- **f1** és **f2** korrekciós tényezők számítása beépített MSZ 13207:2020 táblákból (12.a–12.b és 13.a–16.b).
+- **f1** és **f2** korrekciós tényezők számítása.
 - Paraméterek: *kábel típusa*, *talajhőmérséklet*, *talaj fajlagos hőellenállás (ρ)*, *terhelési tényező (LF)*, *elrendezés*, *rendszerek száma*.
 - **Védőcső opció**: ha *Igen*, a végeredmény további **0,85** szorzót kap.
 - **Rendszer adatai (opcionális)**: feszültség (22 kV / 11 kV / 0,4 kV) és teljesítmény (kW) → számított áram **I = P / (√3·U)** → összevetés a kábel terhelhetőségével:
