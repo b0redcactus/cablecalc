@@ -1,7 +1,7 @@
 # cablecalc – Földkábel terhelhetőség
 
-Egyszerű, offline földkábel terhelhetőség kalkulátor.
-Végső áramterhelhetőség: **A = Alap × f1 × f2 × (védőcső esetén 0,85)**
+Egyszerű, offline földkábel terhelhetőség kalkulátor.  
+Végső áramterhelhetőség képlete: **A = Alap × f1 × f2 × (védőcső esetén 0,85)**
 
 ---
 
@@ -10,42 +10,41 @@ Végső áramterhelhetőség: **A = Alap × f1 × f2 × (védőcső esetén 0,85
 - [Funkciók](#funkciók)
 - [Telepítés és futtatás](#telepítés-és-futtatás)
 - [Használat](#használat)
+- [Rendszer adatai és megfelelőség-ellenőrzés](#rendszer-adatai-és-megfelelőség-ellenőrzés)
 - [XLSX export (projektlap)](#xlsx-export-projektlap)
 - [Bemenetek és logika](#bemenetek-és-logika)
 - [Adatszerkezetek](#adatszerkezetek)
 - [Hibakezelés](#hibakezelés)
-- [Bővítés--karbantartás](#bővítés--karbantartás)
+- [Bővítés–karbantartás](#bővítés–karbantartás)
 - [Ismert korlátok](#ismert-korlátok)
-- [Kapcsolat--hozzájárulás](#kapcsolat--hozzájárulás)
+- [Kapcsolat–hozzájárulás](#kapcsolat–hozzájárulás)
 
 ---
 
 ## Funkciók
 
-- **f1** és **f2** korrekciós tényezők számítása beépített táblákból.
+- **f1** és **f2** korrekciós tényezők számítása beépített MSZ 13207:2020 táblákból (12.a–12.b és 13.a–16.b).
 - Paraméterek: *kábel típusa*, *talajhőmérséklet*, *talaj fajlagos hőellenállás (ρ)*, *terhelési tényező (LF)*, *elrendezés*, *rendszerek száma*.
 - **Védőcső opció**: ha *Igen*, a végeredmény további **0,85** szorzót kap.
-- Azonnali visszajelzés: külön megjelenik az **f1**, **f2** és a **végső A**.
-- 100% **offline** – csak egy HTML fájl (külső szerver nem kell).
-- **XLSX export** gomb: a megadott bemeneteket és az eredményeket Excel fájlba menti (üres „Projekt címe” és „Kábel fajtája” mezőkkel a kitöltéshez).
+- **Rendszer adatai (opcionális)**: feszültség (22 kV / 11 kV / 0,4 kV) és teljesítmény (kW) → számított áram **I = P / (√3·U)** → összevetés a kábel terhelhetőségével:
+  - zöld: **„Kábel megfelelő”** (A ≥ I)
+  - piros: **„Kábel nem megfelelő”** (A < I)
+- **XLSX export** gomb: a megadott bemeneteket és az eredményeket Excel fájlba menti (üres „Projekt címe” és „Kábel fajtája” sorokkal).
+- 100% **offline** – csak egy HTML fájl, külső szerver nem szükséges.
 
 ---
 
 ## Telepítés és futtatás
 
-1. Klónozd vagy töltsd le a repót.
-2. Nyisd meg az `index.html` fájlt bármely modern böngészőben.
+1) Klónozd vagy töltsd le a repót.  
+2) Nyisd meg az `index.html` fájlt bármely modern böngészőben.
 
-```bash
-git clone <repo>
-cd <mappa>
-python -m http.server 5500
-git clone <REPO_URL>
-cd <REPO_MAPPÁJA>
-# Dupla katt az index.html-re, vagy:
-python -m http.server 5500
-# majd nyisd meg: http://localhost:5500
-```
+Parancssoros lokális kiszolgáló (opcionális):
+
+    git clone <REPO_URL>
+    cd <REPO_MAPPÁJA>
+    python -m http.server 5500
+    # majd böngészőben: http://localhost:5500
 
 ---
 
@@ -68,32 +67,43 @@ python -m http.server 5500
 
 ---
 
+## Rendszer adatai és megfelelőség-ellenőrzés
+
+- **Névleges feszültség (U)**: 22 kV / 11 kV / 0,4 kV (V-ben: 22000 / 11000 / 400)
+- **Teljesítmény (P)**: tetszőleges kW
+- Számítás: **I = P / (√3 · U)**
+- Összevetés: ha **A ≥ I** → `Kábel megfelelő` (zöld), különben `Kábel nem megfelelő` (piros).
+- Opcionális mezők – a kalkulátor a rendszeradatok nélkül is működik.
+
+---
+
 ## XLSX export (projektlap)
 
-- A felületen található **„XLSX import”** gomb (név szerint import, funkció szerint *export*) egy Excel fájlba menti:
-  - az összes megadott **bemenetet**, és
-  - a kiszámolt **f1**, **f2**, **védőcső szorzó** és **végső A** értékeket.
-- A létrejövő munkafüzetben szerepelnek üres mezők is:
-  - **Projekt címe** *(üresen hagyva a felhasználónak)*  
-  - **Kábel fajtája** *(üresen hagyva a felhasználónak)*
+- A felületen található **„XLSX import”** gomb (név szerint import, valójában *export*) Excel fájlba menti:
+  - az összes megadott **bemenetet**,
+  - a számolt **f1**, **f2**, **védőcső szorzó** és **végső A** értékeket,
+  - opcionálisan a rendszeradatokból számolt áramot és a megfelelőség-eredményt.
+- A munkalapon előkészített, üresen hagyott sorok:
+  - **Projekt címe**
+  - **Kábel fajtája**
 
-**Fontos használati sorrend:**  
-1) először nyomd meg a **Számítás** gombot,  
-2) csak ezután kattints az **„XLSX import”** gombra, hogy a legfrissebb eredmények kerüljenek az Excelbe.
+**Használati sorrend:**
+1) először **Számítás**,  
+2) utána **„XLSX import”** a friss eredmények exportálásához.
 
-**Mentés:**
-- Fájlnév: `cablecalc_projekt.xlsx`
-- Munkalap: `Kalkuláció`
+**Mentés (alapértelmezés):**
+- Fájlnév: `kabel_terheles_<timestamp>.xlsx`
+- Munkalap: `Számítás`
 
 ---
 
 ## Bemenetek és logika
 
-- **f1** a **12.a–12.b** táblák alapján: a kiválasztott *talajhőmérséklet*, *ρ* és *LF* szerint.
-- **f2** a **13.a–16.b** táblák alapján: *elrendezés*, *kábel-típus*, *rendszám*, *ρ* és *LF* szerint.
+- **f1**: a **12.a–12.b** táblák alapján (*talajhőmérséklet*, *ρ*, *LF*).
+- **f2**: a **13.a–16.b** táblák alapján (*elrendezés*, *kábel-típus*, *rendszám*, *ρ*, *LF*).
 - **Védőcső**: ha *Igen*, a végeredmény további `0.85` szorzót kap.
 
-> A kalkulátor **pontosan** a táblapontokhoz illeszt; ha egy kombináció hiányzik (pl. 25 °C és ρ = 0,7 nincs definiálva), akkor **„Nincs adat”** és **„Nem számolható az adott adatokkal”** jelenik meg. Nem történik automatikus átváltás közeli értékre.
+> A kalkulátor **pontosan** a táblapontokhoz illeszt; ha egy kombináció hiányzik (pl. 25 °C és ρ = 0,7 nincs definiálva), akkor **„Nincs adat”** és **„Nem számolható az adott adatokkal”** jelenik meg. Nincs automatikus közelítés másik ρ/LF értékhez.
 
 ---
 
@@ -121,7 +131,7 @@ python -m http.server 5500
 - Ha valamelyik kombináció **hiányzik**:
   - az adott f-értéknél **„Nincs adat”** látszik,
   - a végeredménynél pedig **„Nem számolható az adott adatokkal”**.
-- A logika **nem** próbál közeli ρ- vagy LF-értéket választani.
+- A logika **nem** választ „közeli” ρ- vagy LF-értéket.
 
 ---
 
@@ -133,7 +143,7 @@ python -m http.server 5500
   - Új kábel-típus: `f1Data` és/vagy `f2Data` bővítése + UI `<option>`.
 - **Védőcső logika**: a `duct` mező (Igen/Nem) alapján a végeredmény `× 0.85` vagy `× 1`.
 - **Stílus**: a `<style>` blokkban módosítható (színek, grid, gombok).
-- **XLSX export**: a [SheetJS](https://sheetjs.com/) könyvtárat a HTML végén, a saját `<script>` **elé** töltsd be (CDN), hogy az `XLSX` elérhető legyen.
+- **XLSX export**: a SheetJS (xlsx) könyvtárat a HTML-ben a saját `<script>` **elé** töltsd be CDN-ről, hogy az `XLSX` elérhető legyen.
 
 ---
 
@@ -147,5 +157,4 @@ python -m http.server 5500
 ## Kapcsolat–hozzájárulás
 
 - Hibát találtál vagy bővítenéd a táblázatokat? Nyiss **issue**-t vagy küldj **pull request**-et.
-- Kérjük, a használat során tartsd be: **először Számítás**, majd **„XLSX import”** (export) a projektlap mentéséhez.
-
+- Használat közben javasolt sorrend: **először Számítás**, majd **„XLSX import”** (export) a projektlap mentéséhez.
