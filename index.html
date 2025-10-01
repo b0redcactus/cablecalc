@@ -1157,9 +1157,10 @@ const f2Data = {
 
   //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+<script>
+// ========== Segédfüggvények ==========
 
-// Segédfüggvény a legközelebbi kulcs kereséséhez (szám vagy "any")
-// VISSZAADJA AZ EREDETI KULCSOT (pl. "1.0"), nem pedig "1"-et.
+// a legközelebbi nagyobb/egyenlő kulcs (eredeti string kulccsal, pl. "1.0")
 function findClosestKey(keys, value) {
   const rows = keys
     .map(k => ({ orig: k, val: (k === 'any' ? Infinity : parseFloat(k)) }))
@@ -1169,15 +1170,15 @@ function findClosestKey(keys, value) {
   if (!rows.length || Number.isNaN(numVal)) return null;
 
   for (const row of rows) {
-    if (numVal <= row.val) return row.orig;  // EREDETI string kulcsot ad vissza (pl. "1.0")
+    if (numVal <= row.val) return row.orig;
   }
-  return rows[rows.length - 1].orig;         // utolsó (pl. "any" vagy a legnagyobb szám)
+  return rows[rows.length - 1].orig;
 }
 
-  // Legnagyobb, de <= value kulcs visszaadása (eredeti string kulccsal)
+// a legnagyobb, de <= value kulcs (eredeti string kulccsal), 'any' figyelmen kívül
 function findFloorKey(keys, value) {
   const rows = keys
-    .filter(k => k !== 'any') // itt az 'any' nem releváns a floor-hoz
+    .filter(k => k !== 'any')
     .map(k => ({ orig: k, val: parseFloat(k) }))
     .filter(r => !Number.isNaN(r.val))
     .sort((a,b) => a.val - b.val);
@@ -1189,67 +1190,60 @@ function findFloorKey(keys, value) {
   for (const row of rows) {
     if (row.val <= numVal) candidate = row.orig; else break;
   }
-  return candidate; // ha null, akkor nincs kisebb/egyenlő
+  return candidate;
 }
 
-
-// Egyszerű elérés a nested objektumban
 function getNested(obj, keys) {
-  return keys.reduce((o,k) => o && k in o ? o[k] : null, obj);
+  return keys.reduce((o,k) => (o && k in o) ? o[k] : null, obj);
 }
 
-// Segéd: LF kulcshoz stringesítés (f1 táblákhoz)
+// LF kulcs normalizálók
 function lfKeyF1(n) {
   if (n === 1) return "1.00";
   if (n === 0.85) return "0.85";
-  return n.toFixed(2); // 0.5 -> "0.50", 0.6 -> "0.60", 0.7 -> "0.70"
+  return n.toFixed(2); // "0.50", "0.60", "0.70"
 }
-// Segéd: LF kulcshoz stringesítés (f2 táblákhoz)
 function lfKeyF2(n) {
   if (n === 1) return "1.0";
   if (n === 0.85) return "0.85";
-  return n.toString(); // 0.5 -> "0.5", 0.6 -> "0.6", 0.7 -> "0.7"
+  return n.toString(); // "0.5","0.6","0.7"
 }
 
-// f1 lekérdezés (fix: fallback kulcs pontos stringgé)
+// ========== f1 lekérés (szigorú, de ésszerű fallback) ==========
 function getF1Value(type, soilT, rho, lf) {
   const temps = f1Data[type];
   if (!temps) return null;
 
-  // hőmérséklet: maradhat a meglévő logika (ha eddig jó volt nálad)
   const tKey = findClosestKey(Object.keys(temps), Number(soilT));
   if (!tKey) return null;
 
   const rhoData = temps[tKey];
 
-  // RHO: floor (pl. 0.7 kérésre 25°C-nál NINCS adat, mert a legkisebb kulcs 1.0)
+  // RHO: floor (25 °C-nál ha 0.7 nincs, ne ugorjunk fel 1.0-ról le/fel tévesen)
   const rKey = findFloorKey(Object.keys(rhoData), rho);
   if (!rKey) return null;
 
   const lfData = rhoData[rKey];
 
-  // ha van "any", azt visszaadjuk bármely LF-re
+  // ha van "any", azt bármely LF-re visszaadjuk
   if ('any' in lfData) return lfData['any'];
 
-  // pontos LF kulcsra próbálunk
+  // pontos LF
   if (lf in lfData) return lfData[lf];
 
-  // fallback: lefelé a legnagyobb <= lf
+  // fallback: legnagyobb <= LF (f1-ben "0.50" formátum kell)
   const lfs = Object.keys(lfData).map(parseFloat).sort((a,b)=>a-b);
+  const lfNum = parseFloat(lf);
   for (let i = lfs.length - 1; i >= 0; i--) {
-    if (parseFloat(lf) >= lfs[i]) {
-      // f1 táblában az LF kulcsok "0.50", "1.00" stb.
-      const key = (lfs[i] === 1 ? "1.00" : lfs[i].toFixed(2));
+    if (lfNum >= lfs[i]) {
+      const key = lfKeyF1(lfs[i]);
       return lfData[key];
     }
   }
   return null;
 }
 
-
-// f2 lekérdezés (fix: LF normalizálás + fallback kulcs stringgé)
-function lfKeyF2(n) { return n === 1 ? "1.0" : n.toString(); }
-
+// ========== f2 lekérés ==========
 function getF2Value(arr, type, systems, rho, lf) {
   const table = f2Data[arr];
   if (!table) return null;
@@ -1257,26 +1251,24 @@ function getF2Value(arr, type, systems, rho, lf) {
   const typeData = table[type];
   if (!typeData) return null;
 
-  // systems: floor (pl. 7 -> 6, ha nincs 7-es sor)
   const sysKey = findFloorKey(Object.keys(typeData), systems);
   if (!sysKey) return null;
 
   const rhoData = typeData[sysKey];
 
-  // rho: floor (pl. 0.7  -> 0.7; ha csak 1.0-tól van, akkor null)
   const rKey = findFloorKey(Object.keys(rhoData), rho);
   if (!rKey) return null;
 
   const lfData = rhoData[rKey];
 
-  // Pontos egyezés a bejövő stringgel
+  // pontos LF string
   if (lf in lfData) return lfData[lf];
 
-  // Normalizált kulcs (pl. "0.50" -> "0.5", "1.00" -> "1.0")
+  // normalizált LF kulcs ("0.50" -> "0.5")
   const lfNorm = lfKeyF2(parseFloat(lf));
   if (lfNorm in lfData) return lfData[lfNorm];
 
-  // Fallback: lefelé a legnagyobb <= lf
+  // fallback: legnagyobb <= LF
   const lfs = Object.keys(lfData).map(parseFloat).sort((a,b)=>a-b);
   const lfNum = parseFloat(lf);
   for (let i = lfs.length - 1; i >= 0; i--) {
@@ -1288,10 +1280,7 @@ function getF2Value(arr, type, systems, rho, lf) {
   return null;
 }
 
-
-  // --- DUPLIKÁLT f2 kulcsok összeolvasztása ---
-// Ha ugyanaz a top-level kulcs (pl. "triangle7") kétszer is szerepel az objektumban,
-// a második felülírja az elsőt. Ezért egyesítjük őket, ha "második" verziót is találnánk.
+// ========== (opcionális) duplikált f2-k összeolvasztása ==========
 ["triangle7","triangle25","flat7","3core"].forEach(k => {
   const extra = f2Data[k + "b"];
   if (extra) {
@@ -1300,204 +1289,149 @@ function getF2Value(arr, type, systems, rho, lf) {
   }
 });
 
-// --- Háromfázisú rendszeráram számítása ---
-// U_volt: vonali feszültség (V), PkW: teljesítmény kW-ban
+// ========== Háromfázisú rendszeráram ==========
 function computeSystemCurrent(U_volt, PkW) {
   if (!U_volt || !PkW || U_volt <= 0 || PkW < 0) return null;
-  const SQRT3 = Math.sqrt(3);
-  const P_watt = PkW * 1000;
-  return P_watt / (SQRT3 * U_volt);
+  return (PkW * 1000) / (Math.sqrt(3) * U_volt);
 }
 
+// ========== DOM hivatkozások ==========
+const $ = (id) => document.getElementById(id);
 
-document.getElementById('calc').onclick = () => {
-  const base = Number(document.getElementById('base').value);
-  if (isNaN(base) || base <= 0) { alert("Kérlek, adj meg érvényes alapterhelhetőséget!"); return; }
+const elBase   = $('base');
+const elF1t    = $('f1type');
+const elSoilT  = $('soilT');
+const elRho    = $('rho');
+const elLf     = $('lf');
 
-  // --- f1 inputok ---
-  const f1type = document.getElementById('f1type').value;
-  const soilT  = Number(document.getElementById('soilT').value);
-  const rho    = document.getElementById('rho').value;
-  const lf     = document.getElementById('lf').value;
+const elArr    = $('arr');
+const elF2t    = $('f2type');
+const elSys    = $('systems');
+const elRho2   = $('rho2');
+const elLf2    = $('lf2');
+const elDuct   = $('duct');
 
-  // --- f2 inputok ---
-  const arr     = document.getElementById('arr').value;
-  const f2type  = document.getElementById('f2type').value;
-  const systems = Number(document.getElementById('systems').value);
-  const rho2    = document.getElementById('rho2').value;
-  const lf2     = document.getElementById('lf2').value;
+const outF1    = $('f1v');
+const outF2    = $('f2v');
+const outTotal = $('total');
 
-  // --- számítás: f1, f2 ---
-  const fv1 = getF1Value(f1type, soilT, rho, lf);
-  const fv2 = getF2Value(arr, f2type, systems, rho2, lf2);
+const elSysU   = $('sysU');
+const elSysP   = $('sysP');
+const outSysI  = $('sysI');
+const outCheck = $('sysCheck');
 
-  document.getElementById('f1v').textContent = fv1 === null ? "Nincs adat" : fv1.toFixed(3);
-  document.getElementById('f2v').textContent = fv2 === null ? "Nincs adat" : fv2.toFixed(3);
+const btnCalc  = $('calc');
+const btnXlsx  = $('exportXlsx');
 
-  let totalText = "Nem számolható az adott adatokkal";
-  let totalA = null;
+let lastResult = null;
 
-  if (fv1 !== null && fv2 !== null) {
-    // --- védőcső hatás (ha már beépítetted a duct opciót) ---
-    const ductEl = document.getElementById('duct');
-    const ductMul = ductEl && ductEl.value === 'yes' ? 0.85 : 1.0;
-
-    totalA = base * fv1 * fv2 * ductMul;
-    totalText = totalA.toFixed(1) + " A";
-  }
-  document.getElementById('total').textContent = totalText;
-
-  // --- Rendszer adatai (opcionális) ---
-  const sysUStr = document.getElementById('sysU') ? document.getElementById('sysU').value : "";
-  const sysPStr = document.getElementById('sysP') ? document.getElementById('sysP').value : "";
-
-  const sysIEl = document.getElementById('sysI');
-  const sysCheckEl = document.getElementById('sysCheck');
-
-  // alap reset megjelenítés
-  if (sysIEl) sysIEl.textContent = "–";
-  if (sysCheckEl) {
-    sysCheckEl.textContent = "–";
-    sysCheckEl.classList.remove('ok', 'bad');
+// ========== Számítás + UI ==========
+function performCalculationAndUpdateUI() {
+  const base = Number(elBase.value);
+  if (!base || base <= 0) {
+    outF1.textContent = '–';
+    outF2.textContent = '–';
+    outTotal.textContent = 'Nem számolható az adott adatokkal';
+    const Ionly = computeSystemCurrent(elSysU?.value, elSysP?.value);
+    if (outSysI) outSysI.textContent = Ionly ? Ionly.toFixed(1) + ' A' : '–';
+    if (outCheck) { outCheck.textContent = '–'; outCheck.className = 'mono'; }
+    lastResult = null;
+    return null;
   }
 
-  // csak akkor számolunk és hasonlítunk, ha a user megadta mindkettőt
-  if (sysUStr && sysPStr) {
-    const U = Number(sysUStr);
-    const PkW = Number(sysPStr);
+  const f1 = getF1Value(elF1t.value, elSoilT.value, elRho.value, elLf.value);
+  const f2 = getF2Value(elArr.value, elF2t.value, elSys.value, elRho2.value, elLf2.value);
 
-    const Isys = computeSystemCurrent(U, PkW);
-    if (sysIEl) sysIEl.textContent = Isys === null ? "–" : Isys.toFixed(1) + " A";
+  outF1.textContent = (f1 == null) ? 'Nincs adat' : f1.toFixed(3);
+  outF2.textContent = (f2 == null) ? 'Nincs adat' : f2.toFixed(3);
 
-    // összehasonlítás csak akkor, ha van végső terhelhetőség
-    if (totalA !== null && Isys !== null) {
-      if (Isys <= totalA) {
-        sysCheckEl.textContent = "Megfelelő (kábel ≥ rendszeráram)";
-        sysCheckEl.classList.remove('bad');
-        sysCheckEl.classList.add('ok');
-      } else {
-        sysCheckEl.textContent = "Nem megfelelő (kábel < rendszeráram)";
-        sysCheckEl.classList.remove('ok');
-        sysCheckEl.classList.add('bad');
-      }
-    } else if (sysCheckEl) {
-      // nincs összevethető kábelterhelhetőség
-      sysCheckEl.textContent = "Nem hasonlítható (nincs terhelhetőség)";
-      sysCheckEl.classList.remove('ok', 'bad');
+  if (f1 == null || f2 == null) {
+    outTotal.textContent = 'Nem számolható az adott adatokkal';
+    const Ionly = computeSystemCurrent(elSysU.value, elSysP.value);
+    if (outSysI) outSysI.textContent = Ionly ? Ionly.toFixed(1) + ' A' : '–';
+    if (outCheck) { outCheck.textContent = '–'; outCheck.className = 'mono'; }
+    lastResult = { base, f1, f2, total: null, duct: elDuct?.value === 'yes',
+                   sysU: elSysU.value, sysP: elSysP.value, I: Ionly, ok: null };
+    return lastResult;
+  }
+
+  const ductFactor = (elDuct && elDuct.value === 'yes') ? 0.85 : 1.0;
+  const total = base * f1 * f2 * ductFactor;
+  outTotal.textContent = total.toFixed(1) + ' A';
+
+  const I = computeSystemCurrent(elSysU.value, elSysP.value);
+  if (outSysI) outSysI.textContent = I ? I.toFixed(1) + ' A' : '–';
+
+  if (I && total) {
+    if (total >= I) {
+      outCheck.textContent = 'Kábel megfelelő';
+      outCheck.className = 'mono ok';
+    } else {
+      outCheck.textContent = 'Kábel nem megfelelő';
+      outCheck.className = 'mono bad';
     }
-  }
-};
-
-
-  // XLSX export – "XLSX import" gomb
-document.getElementById('exportXlsx').onclick = () => {
-  // 1) Bemenetek beolvasása (aktuális értékek a formból)
-  const baseEl   = document.getElementById('base');
-  const f1typeEl = document.getElementById('f1type');
-  const soilTEl  = document.getElementById('soilT');
-  const rhoEl    = document.getElementById('rho');
-  const lfEl     = document.getElementById('lf');
-
-  const arrEl     = document.getElementById('arr');
-  const f2typeEl  = document.getElementById('f2type');
-  const systemsEl = document.getElementById('systems');
-  const rho2El    = document.getElementById('rho2');
-  const lf2El     = document.getElementById('lf2');
-  const ductEl    = document.getElementById('duct'); // védőcső
-
-  const base    = parseFloat(baseEl.value);
-  const f1type  = f1typeEl.value;
-  const soilT   = parseFloat(soilTEl.value);
-  const rho     = rhoEl.value;     // string (pl. "1.0")
-  const lf      = lfEl.value;      // string (pl. "0.85")
-
-  const arr     = arrEl.value;
-  const f2type  = f2typeEl.value;
-  const systems = parseFloat(systemsEl.value);
-  const rho2    = rho2El.value;
-  const lf2     = lf2El.value;
-  const duct    = ductEl.value;    // "yes" | "no"
-
-  // Címkék (szebb Excelhez)
-  const f1typeLabel = f1typeEl.selectedOptions[0].text;
-  const arrLabel    = arrEl.selectedOptions[0].text;
-  const f2typeLabel = f2typeEl.selectedOptions[0].text;
-  const ductLabel   = duct === 'yes' ? 'Igen (0,85×)' : 'Nem';
-
-  // 2) Értékek újraszámolása (független attól, hogy megnyomták-e a Számítás gombot)
-  const fv1 = getF1Value(f1type, soilT, rho, lf);
-  const fv2 = getF2Value(arr, f2type, systems, rho2, lf2);
-
-  if (isNaN(base) || base <= 0) {
-    alert('Adj meg érvényes alapterhelhetőséget (A)!');
-    return;
-  }
-  if (fv1 === null || fv2 === null) {
-    alert('Ezekkel az adatokkal nem számolható. Kérlek ellenőrizd a kiválasztott értékeket!');
-    return;
+  } else {
+    outCheck.textContent = '–';
+    outCheck.className = 'mono';
   }
 
-  const ductFactor = (duct === 'yes') ? 0.85 : 1.0;
-  const totalA = base * fv1 * fv2 * ductFactor;
+  lastResult = { base, f1, f2, total,
+                 duct: elDuct?.value === 'yes',
+                 sysU: elSysU.value, sysP: elSysP.value, I,
+                 ok: (I && total) ? (total >= I) : null };
+  return lastResult;
+}
 
-  // 3) Excel tartalom (AOA = Array of Arrays)
+// ========== Események ==========
+btnCalc?.addEventListener('click', performCalculationAndUpdateUI);
+[elSysU, elSysP].forEach(el => el?.addEventListener('input', () => { if (lastResult) performCalculationAndUpdateUI(); }));
+
+// ========== XLSX export ==========
+btnXlsx?.addEventListener('click', () => {
+  const res = performCalculationAndUpdateUI();
+  if (!res) { alert('Először töltsd ki az adatokat és nyomd meg a Számítás gombot.'); return; }
+  if (res.f1 == null || res.f2 == null) { alert('Ezekkel az adatokkal nem számolható.'); return; }
+
+  const f1typeEl = elF1t, arrEl = elArr, f2typeEl = elF2t;
   const rows = [
-    ['Projekt címe', ''],         // üresen hagyva
-    ['Kábel fajtája', ''],        // üresen hagyva
+    ['Projekt címe',''],
+    ['Kábel fajtája',''],
     ['',''],
-    ['Alapadatok', ''],
-    ['Alapterhelhetőség (A)', base],
-    ['Kábel típusa (f1)', f1typeLabel + ` [${f1type}]`],
-    ['Talaj hőmérséklete (°C)', soilT],
-    ['Talaj fajlagos hőellenállása – f1 (K·m/W)', rho],
-    ['Terhelési tényező – f1', lf],
+    ['Bemenetek','Érték'],
+    ['Alapterhelhetőség (A)', res.base ?? '—'],
+    ['f1 – Kábel típusa', f1typeEl.selectedOptions[0].text + ` [${f1typeEl.value}]`],
+    ['f1 – Talaj hőmérséklete (°C)', elSoilT.value],
+    ['f1 – Talaj fajlagos hőellenállása ρ', elRho.value],
+    ['f1 – Terhelési tényező', elLf.value],
+    ['f2 – Elrendezés', arrEl.selectedOptions[0].text + ` [${arrEl.value}]`],
+    ['f2 – Kábel típusa', f2typeEl.selectedOptions[0].text + ` [${f2typeEl.value}]`],
+    ['f2 – Kábelrendszerek száma', elSys.value],
+    ['f2 – Talaj fajlagos hőellenállása ρ', elRho2.value],
+    ['f2 – Terhelési tényező', elLf2.value],
+    ['Védőcső', res.duct ? 'Igen (0,85×)' : 'Nem'],
     ['',''],
-    ['Elrendezés (f2)', arrLabel + ` [${arr}]`],
-    ['Kábel típusa (f2)', f2typeLabel + ` [${f2type}]`],
-    ['Kábelrendszerek száma', systems],
-    ['Talaj fajlagos hőellenállása – f2 (K·m/W)', rho2],
-    ['Terhelési tényező – f2', lf2],
-    ['Védőcső használata', ductLabel],
+    ['Eredmények','Érték'],
+    ['f1', res.f1.toFixed(3)],
+    ['f2', res.f2.toFixed(3)],
+    ['Végső terhelhetőség (A)', res.total == null ? 'Nem számolható' : res.total.toFixed(1)],
     ['',''],
-    ['f1 érték', Number(fv1).toFixed(3)],
-    ['f2 érték', Number(fv2).toFixed(3)],
-    ['Összes szorzó (védőcsővel)', (fv1 * fv2 * ductFactor).toFixed(3)],
-    ['Végső terhelhetőség (A)', totalA.toFixed(1)],
+    ['Rendszer adatai (opcionális)','Érték'],
+    ['Névleges feszültség (V)', elSysU.value || '—'],
+    ['Teljesítmény (kW)', elSysP.value || '—'],
+    ['Számított rendszeráram (A)', res.I ? res.I.toFixed(1) : '—'],
+    ['Összehasonlítás', res.ok == null ? '—' : (res.ok ? 'Kábel megfelelő' : 'Kábel nem megfelelő')],
     ['',''],
-    ['Szabvány', 'MSZ 13207:2020'],
-    ['Export dátum/idő', new Date().toLocaleString()]
+    ['Szabvány','MSZ 13207:2020'],
+    ['Export dátum/idő', new Date().toLocaleString()],
   ];
 
-  // 4) Munkafüzet készítés és letöltés
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet(rows);
-
-  // Kicsit szélesebb oszlopok
-  ws['!cols'] = [{ wch: 34 }, { wch: 28 }];
-
+  ws['!cols'] = [{ wch: 38 }, { wch: 28 }];
   XLSX.utils.book_append_sheet(wb, ws, 'Számítás');
-  const filename = `kabel_terheles_${Date.now()}.xlsx`;
-  XLSX.writeFile(wb, filename);
-};
-
-
-
-  const fv1=getF1Value(f1type, soilT, rho, lf);
-  const fv2=getF2Value(arr, f2type, systems, rho2, lf2);
-
-  document.getElementById('f1v').textContent=fv1===null?"Nincs adat":fv1.toFixed(3);
-  document.getElementById('f2v').textContent=fv2===null?"Nincs adat":fv2.toFixed(3);
-
-const ductFactor = duct ? 0.85 : 1;
-
-if (fv1 !== null && fv2 !== null) {
-  document.getElementById('total').textContent =
-    (base * fv1 * fv2 * ductFactor).toFixed(1) + " A";
-} else {
-  document.getElementById('total').textContent = "Nem számolható az adott adatokkal";
-}
-
-};
+  XLSX.writeFile(wb, `kabel_terheles_${Date.now()}.xlsx`);
+});
 </script>
+
 </body>
 </html>
