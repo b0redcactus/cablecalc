@@ -26,6 +26,10 @@
   details{margin-top:8px} summary{color:var(--muted);font-size:12px;cursor:pointer}
   code{background:#0c1830;padding:2px 6px;border-radius:6px;border:1px solid #1e2b47}
   .note{font-size:11px;color:#789; margin-top:12px;}
+  /* --- Rendszer adatai státuszszínek --- */
+.ok  { color:#4ade80; }  /* zöld */
+.bad { color:#f87171; }  /* piros */
+
 </style>
 </head>
 <body>
@@ -156,6 +160,39 @@
         <p class="muted">f2 adatok: 13.a–13.b (háromszög, 7 cm), 14.a–14.b (háromszög, 25 cm), 15.a–15.b (sík, 7 cm), 16.a–16.b (háromerű, sík, 7 cm).</p>
       </details>
     </section>
+    <section class="card" id="system-card">
+  <div class="pill">4. Rendszer adatai (opcionális)</div>
+
+  <div class="row">
+    <div>
+      <label for="sysU">Névleges feszültség</label>
+      <select id="sysU" title="Háromfázisú rendszer feszültsége (V)">
+        <option value="">– válassz –</option>
+        <option value="22000">22 kV</option>
+        <option value="11000">11 kV</option>
+        <option value="400">0,4 kV</option>
+      </select>
+    </div>
+    <div>
+      <label for="sysP">Teljesítmény (kW)</label>
+      <input id="sysP" type="number" min="0" step="0.1" placeholder="pl. 500" />
+    </div>
+  </div>
+
+  <div class="muted" style="margin-top:8px">Háromfázisú képlet: <span class="mono">I = P / (√3 · U)</span></div>
+
+  <div class="row" style="margin-top:8px">
+    <div>
+      <span class="muted">Számított rendszeráram</span>
+      <div class="mono" id="sysI">–</div>
+    </div>
+    <div>
+      <span class="muted">Összehasonlítás a kábel terhelhetőséggel</span>
+      <div class="mono" id="sysCheck">–</div>
+    </div>
+  </div>
+</section>
+
   </div>
 </div>
 
@@ -1263,21 +1300,94 @@ function getF2Value(arr, type, systems, rho, lf) {
   }
 });
 
+// --- Háromfázisú rendszeráram számítása ---
+// U_volt: vonali feszültség (V), PkW: teljesítmény kW-ban
+function computeSystemCurrent(U_volt, PkW) {
+  if (!U_volt || !PkW || U_volt <= 0 || PkW < 0) return null;
+  const SQRT3 = Math.sqrt(3);
+  const P_watt = PkW * 1000;
+  return P_watt / (SQRT3 * U_volt);
+}
 
 
-document.getElementById('calc').onclick=()=>{
-  const base=Number(document.getElementById('base').value);
-  if(isNaN(base)||base<=0) {alert("Kérlek, adj meg érvényes alapterhelhetőséget!"); return;}
-  const f1type=document.getElementById('f1type').value;
-  const soilT=Number(document.getElementById('soilT').value);
-  const rho=document.getElementById('rho').value;
-  const lf=document.getElementById('lf').value;
-  const arr=document.getElementById('arr').value;
-  const f2type=document.getElementById('f2type').value;
-  const systems=Number(document.getElementById('systems').value);
-  const rho2=document.getElementById('rho2').value;
-  const lf2=document.getElementById('lf2').value;
-  const duct = document.getElementById('duct').value === 'yes';
+document.getElementById('calc').onclick = () => {
+  const base = Number(document.getElementById('base').value);
+  if (isNaN(base) || base <= 0) { alert("Kérlek, adj meg érvényes alapterhelhetőséget!"); return; }
+
+  // --- f1 inputok ---
+  const f1type = document.getElementById('f1type').value;
+  const soilT  = Number(document.getElementById('soilT').value);
+  const rho    = document.getElementById('rho').value;
+  const lf     = document.getElementById('lf').value;
+
+  // --- f2 inputok ---
+  const arr     = document.getElementById('arr').value;
+  const f2type  = document.getElementById('f2type').value;
+  const systems = Number(document.getElementById('systems').value);
+  const rho2    = document.getElementById('rho2').value;
+  const lf2     = document.getElementById('lf2').value;
+
+  // --- számítás: f1, f2 ---
+  const fv1 = getF1Value(f1type, soilT, rho, lf);
+  const fv2 = getF2Value(arr, f2type, systems, rho2, lf2);
+
+  document.getElementById('f1v').textContent = fv1 === null ? "Nincs adat" : fv1.toFixed(3);
+  document.getElementById('f2v').textContent = fv2 === null ? "Nincs adat" : fv2.toFixed(3);
+
+  let totalText = "Nem számolható az adott adatokkal";
+  let totalA = null;
+
+  if (fv1 !== null && fv2 !== null) {
+    // --- védőcső hatás (ha már beépítetted a duct opciót) ---
+    const ductEl = document.getElementById('duct');
+    const ductMul = ductEl && ductEl.value === 'yes' ? 0.85 : 1.0;
+
+    totalA = base * fv1 * fv2 * ductMul;
+    totalText = totalA.toFixed(1) + " A";
+  }
+  document.getElementById('total').textContent = totalText;
+
+  // --- Rendszer adatai (opcionális) ---
+  const sysUStr = document.getElementById('sysU') ? document.getElementById('sysU').value : "";
+  const sysPStr = document.getElementById('sysP') ? document.getElementById('sysP').value : "";
+
+  const sysIEl = document.getElementById('sysI');
+  const sysCheckEl = document.getElementById('sysCheck');
+
+  // alap reset megjelenítés
+  if (sysIEl) sysIEl.textContent = "–";
+  if (sysCheckEl) {
+    sysCheckEl.textContent = "–";
+    sysCheckEl.classList.remove('ok', 'bad');
+  }
+
+  // csak akkor számolunk és hasonlítunk, ha a user megadta mindkettőt
+  if (sysUStr && sysPStr) {
+    const U = Number(sysUStr);
+    const PkW = Number(sysPStr);
+
+    const Isys = computeSystemCurrent(U, PkW);
+    if (sysIEl) sysIEl.textContent = Isys === null ? "–" : Isys.toFixed(1) + " A";
+
+    // összehasonlítás csak akkor, ha van végső terhelhetőség
+    if (totalA !== null && Isys !== null) {
+      if (Isys <= totalA) {
+        sysCheckEl.textContent = "Megfelelő (kábel ≥ rendszeráram)";
+        sysCheckEl.classList.remove('bad');
+        sysCheckEl.classList.add('ok');
+      } else {
+        sysCheckEl.textContent = "Nem megfelelő (kábel < rendszeráram)";
+        sysCheckEl.classList.remove('ok');
+        sysCheckEl.classList.add('bad');
+      }
+    } else if (sysCheckEl) {
+      // nincs összevethető kábelterhelhetőség
+      sysCheckEl.textContent = "Nem hasonlítható (nincs terhelhetőség)";
+      sysCheckEl.classList.remove('ok', 'bad');
+    }
+  }
+};
+
 
   // XLSX export – "XLSX import" gomb
 document.getElementById('exportXlsx').onclick = () => {
