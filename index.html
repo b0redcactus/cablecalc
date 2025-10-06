@@ -30,6 +30,41 @@
 .ok  { color:#4ade80; }  /* zöld */
 .bad { color:#f87171; }  /* piros */
 
+  /* Segédlet (help) – kisebb, elkülönülő doboz */
+.card.help{
+  font-size:13px;
+  color:var(--muted);
+  background:#0a1424;
+  border:1px dashed var(--line);
+  padding:14px;
+}
+
+/* Kisebb címbuborék a Segédlethez */
+.card.help .pill{
+  transform:scale(.95);
+  opacity:.9;
+}
+
+/* Nagyobb kijelzőn maradjon szem előtt görgetéskor is */
+@media(min-width:980px){
+  .card.help{
+    position:sticky;
+    top:16px;           /* mennyire „tapadjon” felül */
+    align-self:start;   /* hogy ne nyúljon feleslegesen magasra */
+  }
+}
+
+/* Rövid, szorosabb listastílus */
+.help ul{
+  margin:8px 0 0;
+  padding-left:18px;
+}
+.help li{
+  margin:6px 0;
+}
+
+  
+  
 </style>
 </head>
 <body>
@@ -192,6 +227,22 @@
     </div>
   </div>
 </section>
+
+  
+
+<!-- Segédlet kártya -->
+<aside class="card help" id="help">
+  <div class="pill">Segédlet</div>
+  <ul>
+    <li><strong>Alap</strong>: a névleges kábelteljesítmény (A), amire f1 és f2 szorzók jönnek.</li>
+    <li><strong>f1</strong>: talajhőmérséklet, ρ és terhelési tényező hatása.</li>
+    <li><strong>f2</strong>: elrendezés, kábel-típus, rendszerek száma, ρ és LF hatása.</li>
+    <li><strong>Védőcső</strong>: ha „Igen”, a végeredmény ×0,85.</li>
+    <li><strong>Rendszeráram</strong>: I = P/(√3·U). Ha megadod, a program jelzi a megfelelést.</li>
+    <li><strong>Excel</strong>: előbb <em>Számítás</em>, majd <em>XLSX export</em> a projektlaphoz.</li>
+  </ul>
+</aside>
+
 
   </div>
 </div>
