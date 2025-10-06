@@ -30,13 +30,29 @@
 .ok  { color:#4ade80; }  /* zöld */
 .bad { color:#f87171; }  /* piros */
 
-  .sources-actions{ margin-top:10px; }
-
-  /* Segédletek gomb elválasztó és térköz */
+ 
+/* Segédletek gomb elválasztó és térköz */
 .sources-actions{
-  margin-top:14px;          /* kis hely a fenti tartalomtól */
-  padding-top:12px;         /* hely a szaggatott vonal és a gomb között */
-  border-top:1px dashed var(--line);  /* szaggatott elválasztó */
+  margin-top:18px;              /* kicsit több hely felül */
+  padding-top:12px;             /* hely a vonal és a gomb között */
+  border-top:1px dashed var(--line);
+  display:flex;                 /* ha középre kéred: justify-content:center; */
+  justify-content:center;
+}
+
+/* Kisebb, visszafogottabb gomb csak itt */
+.sources-actions .btn{
+  padding:6px 10px;             /* kisebb */
+  font-size:12px;               /* kisebb betű */
+  line-height:1;
+  border-radius:10px;
+  background:transparent;       /* visszafogott */
+  color:var(--muted);
+  border:1px dashed var(--line);/* vizuális kapcsolat a szaggatott elválasztóval */
+}
+.sources-actions .btn:hover{
+  background:#0a1424;
+  color:var(--text);
 }
 
 
