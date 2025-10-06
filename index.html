@@ -11,8 +11,14 @@
   .wrap{max-width:1120px;margin:32px auto;padding:0 16px}
   h1{font-size:22px;margin:0 0 12px}
   .sub{color:var(--muted);font-size:13px;margin-bottom:18px}
-  .grid{display:grid;gap:16px}
-  @media(min-width:980px){.grid{grid-template-columns:1.2fr 1fr}}
+  .grid{display:grid; gap:16px; grid-template-columns:1fr;}
+@media(min-width:900px){
+  .grid{
+    grid-template-columns:minmax(0,1.5fr) 360px; /* bal: kalkulátor, jobb: segédlet */
+    align-items:start;
+  }
+}
+
   .card{background:linear-gradient(180deg,var(--card),#0e1626 45%);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 8px 40px rgba(0,0,0,.25)}
   .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   label{font-size:12px;color:var(--muted);display:block;margin:6px 0}
@@ -30,6 +36,60 @@
 .ok  { color:#4ade80; }  /* zöld */
 .bad { color:#f87171; }  /* piros */
 
+/* --- Jobb oldali segédlet (sidebar) --- */
+.grid{display:grid;gap:16px}
+@media(min-width:1100px){
+  /* bal: tartalom, jobb: segédlet */
+  .grid{grid-template-columns:2fr 1fr; align-items:start;}
+}
+
+/* Bal oldali kártyák egymás alatt rendezve */
+.stack{display:grid;gap:16px}
+
+/* Segédlet kártya megjelenés és ragasztás */
+.card.help{
+  font-size:13px;
+  color:var(--muted);
+  background:#0a1424;
+  border:1px dashed var(--line);
+  padding:14px;
+}
+@media(min-width:1100px){
+  .card.help{
+    position:sticky;
+    top:16px;                 /* görgetéskor „ragad” */
+    max-height:calc(100vh - 32px);
+    overflow:auto;            /* görgethető tartalom */
+  }
+}
+.card.help .pill{transform:scale(.95);opacity:.9}
+
+/* Táblázat stílus a segédlethez */
+.help table{width:100%;border-collapse:collapse;font-size:12px}
+.help th,.help td{border:1px solid var(--line);padding:6px 8px;text-align:left}
+.help thead th{position:sticky;top:0;background:#0c1830;z-index:1}
+.help caption{caption-side:bottom;color:var(--muted);font-size:11px;padding-top:6px}
+
+  /* bal oldali oszlop egymás alatti kártyái */
+.stack{display:flex; flex-direction:column; gap:16px;}
+
+/* segédlet (jobb oldali) – kisebb tipó, szűkebb padding, ragadós és görgethető */
+.help{
+  font-size:12px; line-height:1.35;
+  position:sticky; top:16px;
+  max-height:calc(100vh - 48px);
+  overflow:auto;
+}
+.help .pill{font-size:11px;}
+
+/* táblázat kicsinyítése és tömörítése */
+.help table{width:100%; border-collapse:collapse; table-layout:fixed; font-size:11px;}
+.help th,.help td{padding:6px 8px; border-bottom:1px solid var(--line); vertical-align:top; word-break:break-word;}
+.help th{text-align:left; color:var(--muted); font-weight:600;}
+.help caption{caption-side:bottom; font-size:10px; color:var(--muted); padding-top:6px;}
+
+
+
 </style>
 </head>
 <body>
@@ -37,6 +97,8 @@
   <h1>Földkábel terhelhetőség/Cable current capacity</h1>
   <div class="sub">A = <strong>Alapterhelhetőség/Base load</strong> × <strong>f1</strong> × <strong>f2</strong> </div>
   <div class="grid">
+    <div class="stack" id="calc-stack">
+
     <section class="card">
       <div class="pill">1. Alap</div>
       <label for="base">Alapterhelhetőség/Base load (A)</label>
@@ -192,6 +254,48 @@
     </div>
   </div>
 </section>
+
+
+<!-- Jobb oldali segédlet (sidebar) -->
+<aside class="card help" id="help">
+  <div class="pill">Segédlet</div>
+
+  <p class="muted" style="margin:8px 0 10px">
+    Jellemző talaj- és anyag hőellenállások (K·m/W) – iránymutató értékek.
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Talaj- és anyagmegjelölés</th>
+        <th>Hőellenállás (K·m/W)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Nedves homok</td><td>1</td></tr>
+      <tr><td>Száraz homok</td><td>2,5</td></tr>
+      <tr><td>Homok (0,1–0,3 mm) + kavics (4–8 mm) (1:1)</td><td>0,5–0,8</td></tr>
+      <tr><td>Homok + cement (14:1)</td><td>0,7–1,2</td></tr>
+      <tr><td>Kvarc (tömör)</td><td>0,1</td></tr>
+      <tr><td>Agyag</td><td>1,6</td></tr>
+      <tr><td>Homok + agyag (25% + 75%)</td><td>1,39</td></tr>
+      <tr><td>Homok + agyag (75% + 25%)</td><td>1,95</td></tr>
+      <tr><td>Homok + agyag (50% + 50%)</td><td>1,9</td></tr>
+      <tr><td>Gránit</td><td>0,3–0,6</td></tr>
+      <tr><td>Nedves tőzeg</td><td>1,2</td></tr>
+      <tr><td>Száraz tőzeg</td><td>2,5</td></tr>
+      <tr><td>Mészkő</td><td>0,5</td></tr>
+      <tr><td>Homokkő</td><td>0,6</td></tr>
+      <tr><td>Mika</td><td>1,7</td></tr>
+      <tr><td>Víz</td><td>1,65</td></tr>
+      <tr><td>Szerves anyagok</td><td>4 (nedves) – 7 (száraz)</td></tr>
+      <tr><td>Levegő</td><td>40</td></tr>
+      <tr><td>Beton</td><td>1,2</td></tr>
+    </tbody>
+    <caption>Forrás: szabványból származó tipikus tartományok; tervezéshez mindig a konkrét értékeket használd.</caption>
+  </table>
+</aside>
+
 
   </div>
 </div>
